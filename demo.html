@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>出張買取 予約システム 体験デモ｜信州COWCOW堂</title>
+<style>
+  :root{--main:#1f5f8b;--accent:#e8743b;--bg:#eef1f4;--line:#dde2e7;--text:#222;--sub:#666;--ok:#2e8b57;--ng:#c0392b;--l1:#d50000;--l2:#039be5;--lg:#06c755}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+  header{background:#17344a;color:#fff;padding:12px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+  header h1{font-size:17px;margin:0}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+  .steps span{background:rgba(255,255,255,.14);padding:3px 10px;border-radius:999px}
+  .mtabs{display:none;background:#fff;border-bottom:1px solid var(--line)}
+  .mtabs button{flex:1;border:none;background:none;padding:12px;font-size:14px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;font-family:inherit}
+  .mtabs button.on{color:var(--main);border-color:var(--main)}
+  .wrap{display:grid;grid-template-columns:auto 1fr;gap:18px;padding:18px;align-items:start}
+  .phoneCol{display:flex;flex-direction:column;align-items:center;gap:10px;position:sticky;top:12px}
+  .phone{width:390px;height:780px;border:10px solid #111;border-radius:36px;overflow:hidden;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+  .phone iframe{width:100%;height:100%;border:0;display:block}
+  .ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:13px}
+  .sw{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);padding:6px 10px;border-radius:999px;cursor:pointer}
+  .sw input{accent-color:var(--lg)}
+  .lbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:13px}
+  .panel{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);min-width:0}
+  .ptabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+  .ptabs button{border:none;background:none;padding:13px 16px;font-size:14px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .ptabs button.on{color:var(--main);border-color:var(--main)}
+  .badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--ng);color:#fff;font-size:11px;line-height:18px;text-align:center;margin-left:4px}
+  .pbody{padding:14px}
+  .hint{color:var(--sub);font-size:12.5px;margin:0 0 10px}
+  /* 予約一覧（スプレッドシート風） */
+  .sheet{overflow-x:auto;border:1px solid #c8cdd2}
+  table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
+  th{background:var(--main);color:#fff;font-weight:600;padding:7px 8px;text-align:left;white-space:nowrap;border-right:1px solid #2f7ab0}
+  td{border-top:1px solid #e1e4e8;border-right:1px solid #eef0f2;padding:6px 8px;vertical-align:top}
+  tr.row:hover td{background:#f7fafc}
+  tr.new td{animation:flash 2s}
+  @keyframes flash{0%{background:#fff3b0}100%{background:transparent}}
+  td select{font-size:13px;padding:4px;border:1px solid var(--line);border-radius:4px;font-family:inherit;max-width:170px}
+  .st-未対応{background:#fff3cd}.st-承認{background:#d4edda}.st-お断り{background:#f8d7da}.st-キャンセル{background:#e2e3e5}.st-完了{background:#cfe2ff}
+  .more{border:none;background:none;color:var(--main);cursor:pointer;font-size:12px;padding:0;font-family:inherit}
+  tr.detail td{background:#fafbfc;font-size:12.5px;white-space:pre-wrap;line-height:1.7}
+  .via{font-size:11px;color:var(--sub);white-space:nowrap}
+  /* カレンダー */
+  .calhead{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .calhead b{font-size:15px}
+  .legend{display:flex;gap:10px;margin-left:auto;font-size:12px}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+  .cal{display:grid;grid-template-columns:44px repeat(7,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:640px}
+  .calwrap{overflow-x:auto}
+  .ch{background:#f6f8fa;text-align:center;padding:6px 2px;font-size:12px;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}
+  .ch .dn{font-size:17px;font-weight:700}
+  .ch.sun{color:var(--ng)}.ch.sat{color:#1e6fd9}
+  .tcol{position:relative}
+  .tcol div{height:44px;font-size:11px;color:var(--sub);text-align:right;padding-right:4px;transform:translateY(-7px)}
+  .dcol{position:relative;border-left:1px solid var(--line);background:repeating-linear-gradient(#fff 0 43px,#eceff2 43px 44px)}
+  .ev{position:absolute;border-radius:5px;color:#fff;font-size:11px;padding:3px 5px;overflow:hidden;line-height:1.35;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .ev b{display:block;font-size:11.5px}
+  .addb{border:1px dashed #9db6c9;background:#f5f9fc;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+  .addrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .addrow select,.addrow input[type=text]{padding:5px 6px;border:1px solid var(--line);border-radius:5px;font-family:inherit;font-size:13px}
+  .ev.blk{background:repeating-linear-gradient(45deg,#7d8790 0 6px,#8a949c 6px 12px)!important}
+  .evd{margin-top:12px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;white-space:pre-wrap;font-size:12.5px;line-height:1.7;background:#fafbfc}
+  /* 連絡 */
+  .msg{margin-bottom:14px}
+  .msg .mh{font-size:12px;color:var(--sub);margin-bottom:4px}
+  .lineChat{background:#8cabd9;border-radius:10px;padding:12px;max-width:430px}
+  .bubble{background:#fff;border-radius:14px;padding:10px 12px;white-space:pre-wrap;font-size:13px;line-height:1.6;max-width:92%}
+  .bubble.me{background:#8de055;margin-left:auto}
+  .lineName{font-size:11px;color:#fff;margin:0 0 3px 2px}
+  .mail{border:1px solid var(--line);border-radius:8px;max-width:560px;overflow:hidden}
+  .mail .mt{background:#f6f8fa;padding:8px 12px;font-size:12px;border-bottom:1px solid var(--line);line-height:1.6}
+  .mail .mb{padding:10px 12px;white-space:pre-wrap;font-size:13px;line-height:1.7}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:4px;color:#fff;margin-right:6px}
+  .tag.line{background:var(--lg)}.tag.mail{background:#555}.tag.staff{background:var(--accent)}
+  .empty{color:var(--sub);text-align:center;padding:30px 0}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#222;color:#fff;padding:11px 18px;border-radius:8px;font-size:13.5px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9;max-width:90vw;text-align:center}
+  .toast.show{opacity:1}
+  @media (max-width:900px){
+    .mtabs{display:flex}
+    .wrap{grid-template-columns:1fr;padding:10px}
+    .phoneCol{position:static}
+    .phone{width:100%;max-width:420px;height:calc(100vh - 170px);border-width:0;border-radius:12px}
+    .wrap.showStaff .phoneCol{display:none}
+    .wrap:not(.showStaff) .panel{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>出張買取 予約システム 体験デモ</h1>
+  <div class="steps"><span>① お客様の画面で予約</span><span>② お店の画面で担当者を選んで「承認」</span><span>③ カレンダーとお客様への連絡を確認</span></div>
+</header>
+<div class="mtabs"><button id="mtC" class="on">📱 お客様の画面</button><button id="mtS">🏬 お店の画面<span id="mBadge"></span></button></div>
+
+<div class="wrap" id="wrap">
+  <div class="phoneCol">
+    <div class="phone"><iframe id="cust" title="お客様の予約画面"></iframe></div>
+    <div class="ctl">
+      <label class="sw"><input type="checkbox" id="simLine">LINEから開いた想定にする</label>
+      <button class="lbtn" id="reload">画面を最初から</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ptabs">
+      <button data-t="list" class="on">予約一覧（スプレッドシート）<span id="b_list"></span></button>
+      <button data-t="cal">共有カレンダー</button>
+      <button data-t="msg">送信された連絡<span id="b_msg"></span></button>
+    </div>
+    <div class="pbody" id="v_list">
+      <p class="hint">新しい予約は「未対応」で入ります。<b>担当者を選んでから、ステータスを「承認」</b>にしてください。確定日時を第1希望以外にしたいときは、承認の前に変更します。承認済みの予約で日時や担当者を変えると、カレンダーも自動で更新されます。</p>
+      <div class="sheet"><table><thead><tr>
+        <th>受付ID</th><th>ステータス</th><th>担当者</th><th>確定日時</th><th>お名前</th><th>ご依頼の種類</th><th>市町村</th><th>内容</th><th>連絡方法</th><th>連絡状況</th><th></th>
+      </tr></thead><tbody id="tbody"></tbody></table></div>
+    </div>
+    <div class="pbody" id="v_cal" hidden>
+      <div class="calhead">
+        <button class="lbtn" id="prevW">◀ 前の週</button><button class="lbtn" id="nextW">次の週 ▶</button>
+        <b id="calTitle"></b>
+        <div class="legend"><span><i style="background:var(--l1)"></i>ライン1（トマト）</span><span><i style="background:var(--l2)"></i>ライン2（ピーコック）</span></div>
+      </div>
+      <p class="hint">社員全員で共有しているGoogleカレンダーのイメージです。予定を押すと、カレンダーに書き込まれる詳細が見られます。</p>
+      <div class="addb">
+        <b>スタッフの予定を入れてみる</b>
+        <span class="hint" style="display:block;margin:2px 0 8px">予定名に担当者名（「ライン1 休み」など）か「全員」「休業」を入れると、その時間の受付枠が自動で減ります。入れたら左のお客様画面の日時を見てください。</span>
+        <div class="addrow">
+          <select id="bWho"><option>ライン1</option><option>ライン2</option><option>全員</option></select>
+          <select id="bDate"></select>
+          <select id="bFrom"></select><span>〜</span><select id="bTo"></select>
+          <label style="font-size:12px"><input type="checkbox" id="bAll">終日</label>
+          <input type="text" id="bWhat" value="休み" style="width:90px">
+          <button class="lbtn" id="bAdd" style="background:var(--main);color:#fff;border-color:var(--main)">カレンダーに追加</button>
+        </div>
+      </div>
+      <div class="calwrap"><div class="cal" id="cal"></div></div>
+      <div class="evd" id="evd" hidden></div>
+    </div>
+    <div class="pbody" id="v_msg" hidden>
+      <p class="hint">お客様に自動で送られた連絡と、社内への新規受付通知です（新しいものが上）。LINEから予約したお客様にはLINEで、それ以外のお客様にはメールで届きます。</p>
+      <div id="msgs"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CUSTOMER_HTML=`<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>出張買取 ご予約｜信州COWCOW堂</title>
+<style>
+  :root{
+    --main:#1f5f8b; --main-d:#164a6c; --accent:#e8743b; --bg:#f4f6f8; --card:#fff;
+    --text:#222; --sub:#666; --line:#dde2e7; --ok:#2e8b57; --ng:#c0392b; --linegreen:#06c755;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:16px}
+  header{background:var(--main);color:#fff;padding:18px 16px 16px;text-align:center}
+  header h1{margin:0;font-size:20px;letter-spacing:.05em}
+  header p{margin:4px 0 0;font-size:13px;opacity:.9}
+  main{max-width:640px;margin:0 auto;padding:12px 12px 120px}
+  .card{background:var(--card);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:8px}
+  .num{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--main);color:#fff;font-size:13px;align-items:center;justify-content:center;flex:none}
+  .hint{font-size:13px;color:var(--sub);margin:0 0 10px}
+  label.f{display:block;font-weight:600;font-size:14px;margin:14px 0 4px}
+  .req{background:var(--accent);color:#fff;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:400}
+  .opt{background:#999;color:#fff;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:400}
+  input[type=text],input[type=tel],input[type=email],select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:16px;background:#fff;font-family:inherit}
+  textarea{min-height:84px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--main);border-color:transparent}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer;user-select:none}
+  .chip.on{background:var(--main);border-color:var(--main);color:#fff}
+  .note{background:#fff7e6;border-left:4px solid var(--accent);padding:8px 10px;font-size:13px;border-radius:4px;margin-top:10px}
+  .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .photos div{position:relative;width:78px;height:78px}
+  .photos img{width:78px;height:78px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+  .photos button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:none;background:#333;color:#fff;font-size:12px;cursor:pointer}
+  .filebtn{display:inline-block;border:1px dashed var(--main);color:var(--main);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px}
+  .mhd{display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px}
+  .mhd b{font-size:16px}
+  .mhd button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 14px;font-size:15px;cursor:pointer}
+  .mhd button:disabled{opacity:.3;cursor:default}
+  .wk,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .wk div{font-size:12px;color:var(--sub);padding:2px 0}
+  .wk div:first-child{color:var(--ng)} .wk div:last-child{color:#1e6fd9}
+  .grid{margin-bottom:12px}
+  .cd{border:1px solid var(--line);border-radius:8px;padding:4px 0 2px;cursor:pointer;background:#fff;min-height:48px}
+  .cd span{display:block;font-size:15px;font-weight:700}
+  .cd small{display:block;font-size:12px;color:var(--ok);line-height:1.2}
+  .cd.sun span{color:var(--ng)} .cd.sat span{color:#1e6fd9}
+  .cd.closed,.cd.out{background:#f2f2f2;color:#bbb;cursor:not-allowed}
+  .cd.closed span,.cd.out span,.cd.closed small{color:#bbb}
+  .cd.out{border-color:transparent}
+  .cd.sel{border:2px solid var(--main);background:#eaf2f8}
+  .cd.has small{color:var(--main);font-weight:700}
+  .day{flex:none;width:64px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;padding:6px 0;cursor:pointer;scroll-snap-align:start}
+  .day .d{font-size:16px;font-weight:700}
+  .day .w{font-size:12px}
+  .day .m{font-size:12px;color:var(--ok)}
+  .day.sat .w{color:#1e6fd9} .day.sun .w{color:var(--ng)}
+  .day.closed{background:#eee;color:#aaa;cursor:not-allowed}
+  .day.closed .m{color:#aaa}
+  .day.sel{border:2px solid var(--main);background:#eaf2f8}
+  .slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .slot{border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px 6px;text-align:center;cursor:pointer;font-size:15px}
+  .slot small{display:block;font-size:11px;color:var(--ok)}
+  .slot.full{background:#f0f0f0;color:#aaa;cursor:not-allowed}
+  .slot.full small{color:#aaa}
+  .slot.picked{background:var(--main);color:#fff;border-color:var(--main)}
+  .slot.picked small{color:#fff}
+  .wishes{margin-top:12px}
+  .wish{display:flex;align-items:center;justify-content:space-between;background:#eaf2f8;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:14px}
+  .wish b{color:var(--main);margin-right:6px}
+  .wish button{border:none;background:none;color:var(--ng);font-size:13px;cursor:pointer}
+  .lineinfo{display:flex;gap:10px;align-items:center;background:#e9f9ef;border:1px solid #bfe9cf;border-radius:8px;padding:10px;font-size:14px}
+  .lineinfo .dot{width:10px;height:10px;border-radius:50%;background:var(--linegreen);flex:none}
+  .err{color:var(--ng);font-size:13px;margin-top:4px;display:none}
+  .err.show{display:block}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+  .bar .in{max-width:640px;margin:0 auto;display:flex;gap:8px}
+  .btn{flex:1;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.ghost{background:#eef1f4;color:var(--text);flex:.6}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .hp{position:absolute;left:-9999px}
+  dl.sum{margin:0}
+  dl.sum dt{font-size:12px;color:var(--sub);margin-top:10px}
+  dl.sum dd{margin:2px 0 0;font-size:15px;white-space:pre-wrap;word-break:break-all}
+  .done{text-align:center;padding:28px 16px}
+  .done .ico{width:64px;height:64px;border-radius:50%;background:var(--ok);color:#fff;font-size:36px;line-height:64px;margin:0 auto 12px}
+  .done .id{font-size:20px;font-weight:700;letter-spacing:.05em;margin:8px 0}
+  .hidden{display:none!important}
+  .loading{color:var(--sub);font-size:14px;padding:8px 0}
+  .demo{background:#333;color:#ffd54f;text-align:center;font-size:12px;padding:4px}
+  input[type=date]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:16px;background:#fff;font-family:inherit}
+  .large{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px}
+  .large.on{border-color:var(--main);background:#f5f9fc}
+  .large .ttl{display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer}
+  .large .ttl input{width:20px;height:20px}
+  .large .body{margin-top:4px}
+  .large .body label.f{margin-top:10px;font-size:13px}
+  .row2{display:flex;flex-direction:column;gap:8px}
+  .row2 select{width:100%}
+  .free{background:#fff;border:2px solid var(--accent);border-radius:14px;text-align:center;padding:14px 12px 12px;margin:12px 0}
+  .free-main{color:var(--accent);font-weight:800;line-height:1.1}
+  .free-main span{font-size:24px;margin-right:4px}
+  .free-main b{font-size:40px;letter-spacing:.05em}
+  .free-sub{font-size:16px;font-weight:700;margin-top:4px}
+  .free-note{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.6}
+  .seg{display:flex;background:#eef1f4;border-radius:10px;padding:4px;gap:4px;margin:8px 0 10px}
+  .seg button{flex:1;border:none;background:none;border-radius:8px;padding:10px 4px;font-size:14px;font-weight:700;color:var(--sub);cursor:pointer;font-family:inherit}
+  .seg button.on{background:#fff;color:var(--main);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .day.over{background:#eee;color:#aaa;cursor:not-allowed}
+  .types{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .type{border:2px solid var(--line);background:#fff;border-radius:12px;padding:14px 8px;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;line-height:1.3}
+  .type .ic{font-size:26px}
+  .type.on{border-color:var(--main);background:var(--main);color:#fff}
+</style>
+</head>
+<body>
+<div id="demoBanner" class="demo hidden">デモ表示中（API_URL未設定のため送信は行われません）</div>
+<header>
+  <h1>出張買取 ご予約フォーム</h1>
+  <p>信州COWCOW堂｜中信・東信・北信エリア</p>
+</header>
+
+<main>
+<!-- ===== 入力画面 ===== -->
+<section id="viewForm">
+  <div class="free">
+    <div class="free-main"><span>出張査定</span><b>無料</b></div>
+    <div class="free-sub">お気軽にお申し込みください</div>
+    <div class="free-note">買取不成立・キャンセルの場合も、費用は一切かかりません。</div>
+  </div>
+  <div id="lineBox" class="card hidden">
+    <div class="lineinfo"><span class="dot"></span><span id="lineMsg">LINEでログイン中です。予約の確定連絡はこのLINEにお送りします。</span></div>
+    <div id="friendNote" class="note hidden">確定連絡を受け取るには、信州COWCOW堂のLINE公式アカウントを<b>友だち追加</b>してください。<br><a id="friendLink" href="#" target="_blank">友だち追加はこちら</a></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">1</span>今回どのような買取をご希望ですか？</h2>
+    <input type="hidden" id="reqType" value="">
+    <div class="types" id="typeBtns">
+      <button type="button" class="type" data-v="売りたいものがある"><span class="ic">💴</span>売りたいものがある</button>
+      <button type="button" class="type" data-v="引っ越しに伴う買取"><span class="ic">🚚</span>引っ越しに伴う買取</button>
+      <button type="button" class="type" data-v="遺品整理"><span class="ic">🏠</span>遺品整理</button>
+      <button type="button" class="type" data-v="その他"><span class="ic">✏️</span>その他</button>
+    </div>
+    <div class="err" id="e_reqType">ご依頼の種類を選んでください</div>
+  </div>
+
+  <div class="card hidden" id="detailCard">
+    <h2><span class="num">2</span><span id="detailTitle">ご依頼の内容</span></h2>
+
+    <!-- 売りたいものがある -->
+    <div id="brSell" class="br hidden">
+      <p class="hint">当てはまるものをすべて選んでください。お家の中にあるものなら何でも査定します。</p>
+      <div class="chips" id="items"></div>
+      <p class="hint" style="margin:10px 0 0">※当社の買取基準に基づき、お品物の状態などによってはお買取りできない場合がございます。あらかじめご了承ください。</p>
+      <div class="err" id="e_items">1つ以上選んでください</div>
+      <div id="swordNote" class="note hidden">刀剣類は「銃砲刀剣類登録証」が必要です。当日ご用意ください。</div>
+      <div id="acBox" class="large on hidden" style="margin-top:12px">
+        <div class="ttl">エアコンについて</div>
+        <label class="f" for="acState">取り外しの状況<span class="req">必須</span></label>
+        <select id="acState"><option value="">選択してください</option><option>取り外してある</option><option>取り外しが必要</option></select>
+        <div id="acRemoveBox" class="hidden">
+          <label class="f" for="acIndoor">室内機の設置場所<span class="req">必須</span></label>
+          <select id="acIndoor"><option value="">選択してください</option><option>1階</option><option>2階</option></select>
+          <label class="f" for="acOutdoor">室外機の設置場所<span class="req">必須</span></label>
+          <select id="acOutdoor"><option value="">選択してください</option><option>1階</option><option>2階</option></select>
+          <div id="acOutdoor2Box" class="hidden">
+            <label class="f" for="acOutdoor2">2階の室外機の置き方<span class="req">必須</span></label>
+            <select id="acOutdoor2"><option value="">選択してください</option><option>ベランダ内</option><option>壁付け</option></select>
+          </div>
+          <div id="acWallNote" class="note hidden" style="border-color:#c0392b;background:#fdecea"><b>室外機が壁付けの場合、弊社では取り外しができません。</b><br>恐れ入りますが、取り外しは専門業者にご依頼ください。取り外し後のエアコンは査定いたします。</div>
+        </div>
+        <div class="err" id="e_ac">エアコンの状況と設置場所を選んでください</div>
+      </div>
+      <label class="f" for="itemDetail">品物の詳細・点数<span class="opt">任意</span></label>
+      <textarea id="itemDetail" placeholder="例）カメラ3台、アンプとスピーカー、金のネックレスなど"></textarea>
+    </div>
+
+    <!-- 引っ越しに伴う買取 -->
+    <div id="brMove" class="br hidden">
+      <p class="hint" style="margin:0 0 4px">※当社の買取基準に基づき、お品物の状態などによってはお買取りできない場合がございます。あらかじめご了承ください。</p>
+      <label class="f" for="moveMode">お引き取りのご希望<span class="req">必須</span></label>
+      <select id="moveMode">
+        <option value="">選択してください</option>
+        <option>期日が決まっている</option>
+        <option>当日回収を希望</option>
+      </select>
+      <div class="err" id="e_moveMode">お引き取りのご希望を選んでください</div>
+
+      <div id="moveDeadlineBox" class="hidden">
+        <label class="f" for="lastDate">最終引き上げ日<span class="req">必須</span></label>
+        <p class="hint">この日までにお引き取りします。カレンダーから選ぶか、日付が未定の場合は下の欄にご記入ください。</p>
+        <input type="date" id="lastDate">
+        <input type="text" id="lastDateText" placeholder="例）12月上旬、退去日が決まり次第連絡します など" style="margin-top:8px">
+        <div class="err" id="e_lastDate">最終引き上げ日を選ぶか、ご記入ください</div>
+      </div>
+
+      <div id="moveSameBox" class="hidden">
+        <label class="f" for="scope">お引き取りの範囲<span class="req">必須</span></label>
+        <select id="scope">
+          <option value="">選択してください</option>
+          <option>買取できるものだけ</option>
+          <option>買取できない物の片付けも相談したい</option>
+        </select>
+        <div class="err" id="e_scope">お引き取りの範囲を選んでください</div>
+        <div id="partnerNote" class="note hidden">買取できないお品物は、ご希望に応じて許可を持つ提携業者をご紹介します（料金は提携業者との直接のお取引になります）。</div>
+      </div>
+
+      <label class="f">大きなお品物<span class="opt">該当があれば</span></label>
+      <div class="note" style="margin-top:0">当日はお車でお引き取りに伺います。お車に積みきれないと、再度の訪問などでお客様にご迷惑をおかけしてしまいます。<b>大きなお品物は、種類と設置場所をお知らせください。</b></div>
+      <div id="largeItems"></div>
+      <div class="err" id="e_large">選んだお品物の種類・設置場所を入力してください</div>
+    </div>
+
+    <!-- 遺品整理 -->
+    <div id="brIhin" class="br hidden">
+      <p class="hint" style="margin:0 0 4px">※当社の買取基準に基づき、お品物の状態などによってはお買取りできない場合がございます。あらかじめご了承ください。</p>
+      <label class="f" for="ihinHas">期限はありますか？<span class="req">必須</span></label>
+      <select id="ihinHas">
+        <option value="">選択してください</option>
+        <option>期限がある</option>
+        <option>特に期限はない</option>
+      </select>
+      <div id="ihinDateBox" class="hidden">
+        <label class="f" for="ihinDate">期限</label>
+        <p class="hint">カレンダーから選ぶか、下の欄にご記入ください（例：四十九日まで、年内 など）。</p>
+        <input type="date" id="ihinDate">
+        <input type="text" id="ihinText" placeholder="例）年内、賃貸の退去日（1月末）まで など" style="margin-top:8px">
+      </div>
+      <div class="err" id="e_ihin">期限を選ぶか、ご記入ください</div>
+      <div class="note">買取できないお品物は、ご希望に応じて許可を持つ提携業者をご紹介します（料金は提携業者との直接のお取引になります）。</div>
+    </div>
+
+    <!-- その他 -->
+    <div id="brOther" class="br hidden">
+      <label class="f" for="otherText">ご依頼の内容<span class="req">必須</span></label>
+      <textarea id="otherText" placeholder="ご希望の内容をご自由にお書きください"></textarea>
+      <div class="err" id="e_other">ご依頼の内容をご記入ください</div>
+    </div>
+
+    <div id="photoBox">
+    <label class="f">写真<span class="opt">任意・5枚まで</span></label>
+    <p class="hint">写真があると、当日の査定がスムーズになります。</p>
+    <label class="filebtn">＋ 写真を追加<input type="file" id="photoInput" accept="image/*" multiple class="hidden"></label>
+    <div class="photos" id="photos"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">3</span>お伺いする場所</h2>
+    <label class="f" for="region">地域<span class="req">必須</span></label>
+    <select id="region"><option value="">選択してください</option></select>
+    <label class="f" for="city">市町村<span class="req">必須</span></label>
+    <select id="city" disabled><option value="">先に地域を選択してください</option></select>
+    <div class="err" id="e_city">地域と市町村を選んでください</div>
+    <label class="f" for="address">町名・番地<span class="opt">任意</span></label>
+    <p class="hint" style="margin:0 0 6px">ご記入いただくと、<b>すぐにご予約を確定</b>できます。ご相談の段階でしたら、空欄のままで大丈夫です。</p>
+    <input type="text" id="address" placeholder="例）大字〇〇 123-4" autocomplete="street-address">
+    <label class="f" for="building">建物名・駐車場・搬出について<span class="opt">任意</span></label>
+    <textarea id="building" placeholder="例）〇〇アパート2階（エレベーターなし）、駐車場あり"></textarea>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">4</span><span id="dateTitle">ご希望の日時</span></h2>
+    <div class="seg" id="modeSeg">
+      <button type="button" data-v="book" class="on">日時を選んで申し込む</button>
+      <button type="button" data-v="consult">まずは相談したい</button>
+    </div>
+    <div id="consultNote" class="note hidden" style="margin:0 0 6px">日時やご住所が決まっていなくても大丈夫です。内容を確認して、当店からご連絡いたします。お気軽にご相談ください。</div>
+    <div id="bookBox">
+    <p class="hint">日付を選ぶと時間帯が表示されます（翌月末まで選べます）。表示の時間帯の<b>どこかでお伺い</b>します。<br>まずは<b>第1希望</b>を1つ選んでください。お申し込み後、当店で確認のうえ確定のご連絡をいたします。</p>
+    <div id="limitNote" class="note hidden" style="margin:0 0 10px"></div>
+    <div id="slotsLoading" class="loading">空き状況を読み込み中…</div>
+    <div class="days" id="days"></div>
+    <div class="slots" id="slots"></div>
+    <div class="wishes" id="wishes"></div>
+    <div class="err" id="e_wish">第1希望を選んでください</div>
+    </div>
+    <label class="f" for="wishText" id="wishTextLabel">第2・第3希望、ご都合のよい日時<span class="opt">任意</span></label>
+    <div class="note" style="margin:0 0 6px">💡「平日の午後ならいつでも」「12/5〜12/10の午前中」のように、<b>幅を持たせてご記入いただくと、ご予約が取りやすくなります。</b></div>
+    <textarea id="wishText" placeholder="例）12/8（月）か12/9（火）の午後&#10;例）土日以外ならいつでも大丈夫です&#10;例）来週中の10時〜15時"></textarea>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">5</span>お客様情報</h2>
+    <label class="f" for="name">お名前<span class="req">必須</span></label>
+    <input type="text" id="name" placeholder="例）長野 太郎" autocomplete="name">
+    <div class="err" id="e_name">お名前を入力してください</div>
+    <label class="f" for="kana">フリガナ<span class="opt">任意</span></label>
+    <input type="text" id="kana" placeholder="例）ナガノ タロウ">
+    <label class="f" for="tel">電話番号<span class="req">必須</span></label>
+    <input type="tel" id="tel" placeholder="例）090-1234-5678" autocomplete="tel">
+    <div class="err" id="e_tel">電話番号を正しく入力してください</div>
+    <label class="f" for="email">メールアドレス<span class="req" id="emailReq">必須</span></label>
+    <input type="email" id="email" placeholder="例）example@mail.com" autocomplete="email">
+    <div class="err" id="e_email">メールアドレスを正しく入力してください（確定のご連絡に使います）</div>
+    <label class="f" for="request">ご要望・ご質問<span class="opt">任意</span></label>
+    <textarea id="request" placeholder="例）到着前に電話がほしい、遺品整理もまとめてお願いしたい など"></textarea>
+    <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  </div>
+</section>
+
+<!-- ===== 確認画面 ===== -->
+<section id="viewConfirm" class="hidden">
+  <div class="card">
+    <h2>入力内容のご確認</h2>
+    <p class="hint">内容をご確認のうえ「この内容で申し込む」を押してください。</p>
+    <dl class="sum" id="summary"></dl>
+  </div>
+</section>
+
+<!-- ===== 完了画面 ===== -->
+<section id="viewDone" class="hidden">
+  <div class="card done">
+    <div class="ico">✓</div>
+    <h2 style="justify-content:center">お申し込みを受け付けました</h2>
+    <div>受付番号</div>
+    <div class="id" id="doneId"></div>
+    <p class="hint" id="doneMsg">まだ予約は確定していません。当店で日程を確認し、確定のご連絡をお送りします。</p>
+    <p class="hint">お急ぎの場合はお電話でもどうぞ：<a id="telLink" href="#"></a></p>
+    <button class="btn primary" style="margin-top:12px;width:100%" onclick="location.reload()">（デモ）もう一件予約してみる</button>
+  </div>
+</section>
+</main>
+
+<div class="bar" id="bar">
+  <div class="in">
+    <button class="btn ghost hidden" id="backBtn">戻る</button>
+    <button class="btn primary" id="nextBtn">入力内容を確認する</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ★ 設定（導入時にここだけ書き換えます）
+   ========================================================= */
+const CONFIG = {
+  API_URL: '',          // Apps ScriptのウェブアプリURL（https://script.google.com/macros/s/xxxx/exec）。空ならデモ表示
+  LIFF_ID: '',          // LINEのLIFF ID（例：1234567890-AbCdEfGh）。空ならLINE連携なし
+  LINE_FRIEND_URL: '',  // 友だち追加URL（例：https://lin.ee/xxxxxxx）
+  SHOP_TEL: '026-000-0000', // 表示用の電話番号
+  MAX_PHOTOS: 5
+};
+
+const ITEMS = ['カメラ','オーディオ','貴金属・時計','ゲーム','骨董品','刀剣','除雪機','工具','家具','その他家電','冷蔵庫','洗濯機','テレビ','エアコン','その他（家の中のもの）'];
+
+// 引っ越し：大きなお品物
+const LARGE = [
+  {key:'fridge', name:'冷蔵庫', types:['一人暮らし用（小型）','ファミリー用（大型）']},
+  {key:'washer', name:'洗濯機', types:['5kg以下','5kg以上']},
+  {key:'chest',  name:'タンス・食器棚', note:'数・大きさ', ph:'例：洋服ダンス1、食器棚1'},
+  {key:'other',  name:'その他の大きなもの', note:'品名と大きさ', ph:'例：3人掛けソファ、ダブルベッド'}
+];
+// 設置場所（階 → 詳細）
+const FLOORS = {
+  '1階': [],
+  '2階': ['普通の外階段','メゾネット（玄関を開けるとすぐ階段）'],
+  '3階以上': ['エレベーターあり','エレベーターなし']
+};
+
+const AREAS = {
+  '北信': ['長野市','須坂市','中野市','飯山市','千曲市','坂城町','小布施町','高山村','山ノ内町','木島平村','野沢温泉村','信濃町','小川村','飯綱町','栄村'],
+  '東信': ['上田市','小諸市','佐久市','東御市','小海町','佐久穂町','川上村','南牧村','南相木村','北相木村','軽井沢町','御代田町','立科町','長和町','青木村'],
+  '中信': ['松本市','塩尻市','安曇野市','大町市','麻績村','生坂村','山形村','朝日村','筑北村','池田町','松川村','白馬村','小谷村','木曽町','上松町','南木曽町','木祖村','王滝村','大桑村'],
+  'その他': ['上記以外（ご相談）']
+};
+
+/* ========================================================= */
+const $ = id => document.getElementById(id);
+const state = { mode:'book', items:new Set(), photos:[], days:[], dayIdx:-1, month:'', wishes:[], line:null };
+const WD = ['日','月','火','水','木','金','土'];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(ymd){const [y,m,d]=ymd.split('-').map(Number);const w=new Date(y,m-1,d).getDay();return \`\${m}/\${d}(\${WD[w]})\`;}
+
+/* ---------- 品目 ---------- */
+function renderItems(){
+  $('items').innerHTML = ITEMS.map(i=>\`<span class="chip\${state.items.has(i)?' on':''}" data-v="\${esc(i)}">\${esc(i)}</span>\`).join('');
+  $('swordNote').classList.toggle('hidden', !state.items.has('刀剣'));
+  $('acBox').classList.toggle('hidden', !state.items.has('エアコン'));
+}
+function acUpdate(){
+  const need=$('acState').value==='取り外しが必要';
+  show('acRemoveBox', need);
+  show('acOutdoor2Box', need && $('acOutdoor').value==='2階');
+  show('acWallNote', need && $('acOutdoor').value==='2階' && $('acOutdoor2').value==='壁付け');
+}
+['acState','acOutdoor','acOutdoor2'].forEach(id=>$(id).addEventListener('change', acUpdate));
+function acData(){
+  if(!state.items.has('エアコン')) return null;
+  const st=$('acState').value; if(st!=='取り外しが必要') return {state:st};
+  const out=$('acOutdoor').value, out2=out==='2階'?$('acOutdoor2').value:'';
+  return {state:st, indoor:$('acIndoor').value, outdoor:out+(out2?\`（\${out2}）\`:''), wall: out2==='壁付け'};
+}
+function acText(a){
+  if(!a) return '';
+  if(a.state!=='取り外しが必要') return \`エアコン：\${a.state||'未選択'}\`;
+  return \`エアコン：取り外しが必要／室内機 \${a.indoor}／室外機 \${a.outdoor}\${a.wall?'（※壁付けのため当社では取り外し不可）':''}\`;
+}
+$('items').addEventListener('click', e=>{
+  const v = e.target.dataset && e.target.dataset.v; if(!v) return;
+  state.items.has(v) ? state.items.delete(v) : state.items.add(v);
+  renderItems();
+});
+
+/* ---------- 写真（端末側で縮小してから送信） ---------- */
+function shrink(file){
+  return new Promise((resolve,reject)=>{
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      const max = 1280; let {width:w,height:h} = img;
+      if (w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h); URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg',0.8));
+    };
+    img.onerror = ()=>{URL.revokeObjectURL(url);reject();};
+    img.src = url;
+  });
+}
+$('photoInput').addEventListener('change', async e=>{
+  for (const f of e.target.files){
+    if (state.photos.length>=CONFIG.MAX_PHOTOS) break;
+    try{ state.photos.push(await shrink(f)); }catch(_){}
+  }
+  e.target.value=''; renderPhotos();
+});
+function renderPhotos(){
+  $('photos').innerHTML = state.photos.map((p,i)=>\`<div><img src="\${p}" alt=""><button data-i="\${i}" aria-label="削除">×</button></div>\`).join('');
+}
+$('photos').addEventListener('click', e=>{
+  if (e.target.dataset.i!==undefined){ state.photos.splice(+e.target.dataset.i,1); renderPhotos(); }
+});
+
+/* ---------- ご依頼の種類による切り替え ---------- */
+const BR = {'売りたいものがある':'brSell','引っ越しに伴う買取':'brMove','遺品整理':'brIhin','その他':'brOther'};
+const TITLES = {'売りたいものがある':'査定してほしいもの','引っ越しに伴う買取':'お引っ越しについて','遺品整理':'遺品整理について','その他':'ご依頼の内容'};
+function show(id, on){ $(id).classList.toggle('hidden', !on); }
+$('typeBtns').addEventListener('click', e=>{
+  const b=e.target.closest('.type'); if(!b) return;
+  $('reqType').value=b.dataset.v;
+  document.querySelectorAll('#typeBtns .type').forEach(x=>x.classList.toggle('on', x===b));
+  $('reqType').dispatchEvent(new Event('change'));
+  setTimeout(()=>$('detailCard').scrollIntoView({behavior:'smooth',block:'start'}),50);
+});
+$('reqType').addEventListener('change', ()=>{
+  const t = $('reqType').value;
+  show('detailCard', !!t);
+  Object.entries(BR).forEach(([k,id])=>show(id, k===t));
+  if(t) $('detailTitle').textContent = TITLES[t];
+  onLimitChange();
+});
+$('moveMode').addEventListener('change', ()=>{
+  const m=$('moveMode').value;
+  show('moveDeadlineBox', m==='期日が決まっている');
+  show('moveSameBox', m==='当日回収を希望');
+  onLimitChange();
+});
+$('scope').addEventListener('change', ()=>show('partnerNote', $('scope').value==='買取できない物の片付けも相談したい'));
+$('ihinHas').addEventListener('change', ()=>{ show('ihinDateBox', $('ihinHas').value==='期限がある'); onLimitChange(); });
+['lastDate','ihinDate'].forEach(id=>$(id).addEventListener('change', onLimitChange));
+
+// 期限（最終引き上げ日・遺品整理の期限）を過ぎた日は選べないようにする
+function limitYmd(){
+  const t=$('reqType').value;
+  if(t==='引っ越しに伴う買取' && $('moveMode').value==='期日が決まっている') return $('lastDate').value||'';
+  if(t==='遺品整理' && $('ihinHas').value==='期限がある') return $('ihinDate').value||'';
+  return '';
+}
+function onLimitChange(){
+  const lim=limitYmd();
+  const isMoveDl = $('reqType').value==='引っ越しに伴う買取' && $('moveMode').value==='期日が決まっている';
+  $('dateTitle').textContent = isMoveDl ? '引き上げ希望日' : 'ご希望の日時';
+  $('limitNote').textContent = lim ? \`\${fmtDate(lim)}（期限）より後の日は選べません。\` : '';
+  show('limitNote', !!lim);
+  if(lim){ state.wishes = state.wishes.filter(w=>w.date<=lim); }
+  if(state.dayIdx>=0 && state.days[state.dayIdx] && lim && state.days[state.dayIdx].date>lim){
+    state.dayIdx = state.days.findIndex(d=>!d.closed && d.date<=lim && d.slots.some(s=>s.available));
+    state.month = state.dayIdx>=0 ? state.days[state.dayIdx].date.slice(0,7) : '';
+  }
+  renderDays(); renderSlots(); renderWishes();
+}
+
+/* ---------- 予約／相談の切り替え ---------- */
+$('modeSeg').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.mode=b.dataset.v;
+  document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on', x===b));
+  const c=state.mode==='consult';
+  show('bookBox', !c); show('consultNote', c);
+  $('wishTextLabel').firstChild.textContent = c ? 'ご都合のよい日時・ご連絡のつきやすい時間帯' : '第2・第3希望、ご都合のよい日時';
+  $('nextBtn').dataset.mode=state.mode;
+});
+
+/* ---------- 大きなお品物 ---------- */
+function renderLarge(){
+  $('largeItems').innerHTML = LARGE.map(l=>\`
+    <div class="large" id="lg_\${l.key}">
+      <label class="ttl"><input type="checkbox" data-k="\${l.key}">\${l.name}</label>
+      <div class="body hidden">
+        \${l.types?\`<label class="f">種類</label><select class="lg-type"><option value="">選択してください</option>\${l.types.map(t=>\`<option>\${t}</option>\`).join('')}</select>\`:''}
+        \${l.note?\`<label class="f">\${l.note}</label><input type="text" class="lg-note" placeholder="\${l.ph}">\`:''}
+        <label class="f">設置場所</label>
+        <div class="row2">
+          <select class="lg-floor"><option value="">階を選択</option>\${Object.keys(FLOORS).map(f=>\`<option>\${f}</option>\`).join('')}</select>
+          <select class="lg-sub hidden"></select>
+        </div>
+      </div>
+    </div>\`).join('');
+}
+$('largeItems').addEventListener('change', e=>{
+  const box=e.target.closest('.large'); if(!box) return;
+  if(e.target.type==='checkbox'){
+    box.classList.toggle('on', e.target.checked);
+    box.querySelector('.body').classList.toggle('hidden', !e.target.checked);
+  }
+  if(e.target.classList.contains('lg-floor')){
+    const sub=box.querySelector('.lg-sub'); const opts=FLOORS[e.target.value]||[];
+    sub.innerHTML = '<option value="">選択してください</option>'+opts.map(o=>\`<option>\${o}</option>\`).join('');
+    sub.classList.toggle('hidden', !opts.length);
+  }
+});
+function largeData(){
+  return LARGE.map(l=>{
+    const box=$('lg_'+l.key);
+    if(!box.querySelector('input[type=checkbox]').checked) return null;
+    const q=s=>{const el=box.querySelector(s); return el?el.value.trim():'';};
+    const floor=q('.lg-floor'), sub=q('.lg-sub');
+    return { name:l.name, type:q('.lg-type'), note:q('.lg-note'), floor: floor + (sub?\`（\${sub}）\`:''),
+             _ok: (!l.types||q('.lg-type')) && (!l.note||q('.lg-note')) && floor && (!(FLOORS[floor]||[]).length||sub) };
+  }).filter(Boolean);
+}
+function largeText(list){
+  return list.map(x=>\`\${x.name}\${x.type?'（'+x.type+'）':''}\${x.note?'：'+x.note:''} ／ \${x.floor}\`).join('\\n');
+}
+
+/* ---------- 地域・市町村 ---------- */
+$('region').innerHTML += Object.keys(AREAS).map(r=>\`<option>\${r}</option>\`).join('');
+$('region').addEventListener('change', ()=>{
+  const r = $('region').value; const sel = $('city');
+  if(!r){ sel.innerHTML='<option value="">先に地域を選択してください</option>'; sel.disabled=true; return; }
+  sel.innerHTML = '<option value="">選択してください</option>' + AREAS[r].map(c=>\`<option>\${c}</option>\`).join('');
+  sel.disabled=false;
+});
+
+/* ---------- 日時（空き状況） ---------- */
+function demoSlots(){
+  const days=[]; const now=new Date(); const end=new Date(now.getFullYear(),now.getMonth()+2,0);
+  for(let i=1;;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i); if(d>end) break;
+    const ymd=\`\${d.getFullYear()}-\${String(d.getMonth()+1).padStart(2,'0')}-\${String(d.getDate()).padStart(2,'0')}\`;
+    const closed = d.getDay()===3;
+    days.push({date:ymd, closed, slots: closed?[]:[9,10,11,12,13,14,15,16].map(h=>({start:h,label:\`\${h}:00〜\${h+3}:00\`,available:true}))});
+  }
+  return {days};
+}
+async function loadSlots(){
+  try{
+    const data = CONFIG.API_URL ? await (await fetch(CONFIG.API_URL+'?action=slots')).json() : demoSlots();
+    state.days = data.days||[]; applyAvail();
+    $('slotsLoading').classList.add('hidden');
+    const first = state.days.findIndex(d=>!d.closed && d.slots.some(s=>s.available));
+    state.dayIdx = first; renderDays(); renderSlots();
+  }catch(e){
+    $('slotsLoading').textContent='空き状況を読み込めませんでした。時間をおいて再読み込みするか、お電話でお問い合わせください。';
+  }
+}
+// 月ごとのカレンダー表示（翌月末まで選べます）
+function renderDays(){
+  if(!state.days.length){ $('days').innerHTML=''; return; }
+  const lim=limitYmd();
+  const months=[...new Set(state.days.map(d=>d.date.slice(0,7)))];
+  if(state.dayIdx>=0 && state.days[state.dayIdx] && !state.month) state.month=state.days[state.dayIdx].date.slice(0,7);
+  if(!months.includes(state.month)) state.month=months[0];
+  const mi=months.indexOf(state.month);
+  const [y,m]=state.month.split('-').map(Number);
+  const first=new Date(y,m-1,1).getDay(), last=new Date(y,m,0).getDate();
+  const idx={}; state.days.forEach((d,i)=>idx[d.date]=i);
+  let cells='';
+  for(let i=0;i<first;i++) cells+='<div></div>';
+  for(let dd=1;dd<=last;dd++){
+    const ymd=\`\${y}-\${String(m).padStart(2,'0')}-\${String(dd).padStart(2,'0')}\`, w=(first+dd-1)%7, i=idx[ymd];
+    const wc = w===0?' sun':w===6?' sat':'';
+    if(i===undefined){ cells+=\`<div class="cd out\${wc}"><span>\${dd}</span><small>&nbsp;</small></div>\`; continue; }
+    const d=state.days[i], over=lim && d.date>lim;
+    const free=(d.closed||over)?0:d.slots.filter(s=>s.available).length;
+    const has=state.wishes.some(x=>x.date===d.date);
+    const mark=has?'選択中':d.closed?'休':over?'－':(free?'○':'×');
+    cells+=\`<div class="cd\${wc}\${(d.closed||!free)&&!has?' closed':''}\${i===state.dayIdx?' sel':''}\${has?' has':''}" data-i="\${i}"><span>\${dd}</span><small>\${mark}</small></div>\`;
+  }
+  $('days').innerHTML = \`<div class="mhd"><button type="button" data-m="-1"\${mi<=0?' disabled':''}>◀</button><b>\${y}年\${m}月</b><button type="button" data-m="1"\${mi>=months.length-1?' disabled':''}>▶</button></div>
+    <div class="wk">\${WD.map(w=>\`<div>\${w}</div>\`).join('')}</div><div class="grid">\${cells}</div>\`;
+}
+$('days').addEventListener('click', e=>{
+  const mb=e.target.closest('button[data-m]');
+  if(mb){ const months=[...new Set(state.days.map(d=>d.date.slice(0,7)))]; const mi=months.indexOf(state.month)+Number(mb.dataset.m);
+    if(months[mi]){ state.month=months[mi]; renderDays(); } return; }
+  const el=e.target.closest('.cd'); if(!el||el.dataset.i===undefined||el.classList.contains('closed')) return;
+  state.dayIdx=+el.dataset.i; renderDays(); renderSlots();
+});
+function renderSlots(){
+  const d = state.days[state.dayIdx];
+  const lim = limitYmd();
+  if(!d || (lim && d.date>lim)){ $('slots').innerHTML=''; return; }
+  $('slots').innerHTML = d.slots.map(s=>{
+    const picked = state.wishes.some(w=>w.date===d.date&&w.start===s.start);
+    return \`<div class="slot\${s.available?'':' full'}\${picked?' picked':''}" data-s="\${s.start}">\${s.label}\${picked?'<small>選択中</small>':(s.available?'':'<small>受付終了</small>')}</div>\`;
+  }).join('');
+}
+$('slots').addEventListener('click', e=>{
+  const el=e.target.closest('.slot'); if(!el||el.classList.contains('full')) return;
+  const d=state.days[state.dayIdx]; const s=d.slots.find(x=>x.start===+el.dataset.s);
+  const idx=state.wishes.findIndex(w=>w.date===d.date&&w.start===s.start);
+  if(idx>=0) state.wishes.splice(idx,1);
+  else state.wishes=[{date:d.date,start:s.start,label:s.label}]; // 第1希望は1つ（選び直すと入れ替わる）
+  renderSlots(); renderWishes(); renderDays();
+});
+function renderWishes(){
+  $('wishes').innerHTML = state.wishes.map((w,i)=>\`<div class="wish"><span><b>第\${i+1}希望</b>\${fmtDate(w.date)} \${w.label}</span><button data-i="\${i}">取り消す</button></div>\`).join('');
+}
+$('wishes').addEventListener('click', e=>{
+  if(e.target.dataset.i!==undefined){ state.wishes.splice(+e.target.dataset.i,1); renderWishes(); renderSlots(); renderDays(); }
+});
+function alertBox(msg){ $('e_wish').textContent=msg; $('e_wish').classList.add('show'); setTimeout(()=>{$('e_wish').classList.remove('show');$('e_wish').textContent='第1希望を選んでください';},3000); }
+
+/* ---------- LINE（LIFF） ---------- */
+async function initLine(){
+  if(!CONFIG.LIFF_ID || typeof liff==='undefined') return;
+  try{
+    await liff.init({liffId:CONFIG.LIFF_ID});
+    if(!liff.isLoggedIn()) return;            // LINE外で開いた場合はメール連絡で受付
+    const profile = await liff.getProfile();
+    state.line = { idToken: liff.getIDToken(), displayName: profile.displayName };
+    $('lineBox').classList.remove('hidden');
+    $('lineMsg').textContent = \`\${profile.displayName} さんのLINEでログイン中です。予約の確定連絡はこのLINEにお送りします。\`;
+    $('emailReq').className='opt'; $('emailReq').textContent='任意';
+    try{
+      const f = await liff.getFriendship();
+      if(!f.friendFlag && CONFIG.LINE_FRIEND_URL){ $('friendLink').href=CONFIG.LINE_FRIEND_URL; $('friendNote').classList.remove('hidden'); }
+    }catch(_){}
+  }catch(e){ console.warn('LIFF init failed', e); }
+}
+
+/* ---------- 入力チェック ---------- */
+function val(id){ return $(id).value.trim(); }
+function check(){
+  const t = $('reqType').value, mm = $('moveMode').value;
+  const large = largeData();
+  const errs = {
+    e_reqType: !t,
+    e_items: t==='売りたいものがある' && state.items.size===0,
+    e_ac: t==='売りたいものがある' && state.items.has('エアコン') && (()=>{const a=acData(); return !a.state || (a.state==='取り外しが必要' && (!a.indoor || !$('acOutdoor').value || ($('acOutdoor').value==='2階' && !$('acOutdoor2').value)));})(),
+    e_moveMode: t==='引っ越しに伴う買取' && !mm,
+    e_lastDate: t==='引っ越しに伴う買取' && mm==='期日が決まっている' && !$('lastDate').value && !val('lastDateText'),
+    e_scope: t==='引っ越しに伴う買取' && mm==='当日回収を希望' && !$('scope').value,
+    e_large: t==='引っ越しに伴う買取' && large.some(x=>!x._ok),
+    e_ihin: t==='遺品整理' && (!$('ihinHas').value || ($('ihinHas').value==='期限がある' && !$('ihinDate').value && !val('ihinText'))),
+    e_other: t==='その他' && !val('otherText'),
+    e_city: !$('region').value || !$('city').value,
+    e_wish: state.mode==='book' && state.wishes.length===0,
+    e_name: !val('name'),
+    e_tel: !/^0\\d{9,10}$/.test(val('tel').replace(/[-‐ー－\\s()]/g,'')),
+    e_email: state.line ? (val('email') && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(val('email')))
+                        : !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(val('email'))
+  };
+  let first=null;
+  for(const [k,bad] of Object.entries(errs)){ $(k).classList.toggle('show',!!bad); if(bad&&!first) first=$(k); }
+  if(first) first.closest('.card').scrollIntoView({behavior:'smooth',block:'start'});
+  return !first;
+}
+
+function payload(){
+  const t=$('reqType').value, mm=$('moveMode').value, ih=$('ihinHas').value;
+  const isMove=t==='引っ越しに伴う買取', isIhin=t==='遺品整理';
+  return {
+    requestType:t,
+    items: t==='売りたいものがある' ? [...state.items] : [],
+    itemDetail: t==='売りたいものがある' ? val('itemDetail') : '',
+    aircon: t==='売りたいものがある' ? acData() : null,
+    moveMode: isMove ? mm : '',
+    lastDate: isMove && mm==='期日が決まっている' ? $('lastDate').value : '',
+    lastDateText: isMove && mm==='期日が決まっている' ? val('lastDateText') : '',
+    scope: isMove && mm==='当日回収を希望' ? $('scope').value : '',
+    largeItems: isMove ? largeData().map(({_ok,...x})=>x) : [],
+    ihinHas: isIhin ? ih : '',
+    ihinDate: isIhin && ih==='期限がある' ? $('ihinDate').value : '',
+    ihinText: isIhin && ih==='期限がある' ? val('ihinText') : '',
+    otherText: t==='その他' ? val('otherText') : '',
+    photos:state.photos,
+    region:$('region').value, city:$('city').value, address:val('address'), building:val('building'),
+    consult: state.mode==='consult',
+    wishes: state.mode==='consult' ? [] : state.wishes.map(w=>({date:w.date,start:w.start})), wishText:val('wishText'),
+    name:val('name'), kana:val('kana'), tel:val('tel'), email:val('email'), request:val('request'),
+    lineIdToken: state.line ? state.line.idToken : '', website:val('website')
+  };
+}
+
+function showSummary(){
+  const p=payload();
+  const detail = [];
+  if(p.requestType==='売りたいものがある'){
+    detail.push(['査定してほしいもの', p.items.join('、') + (p.itemDetail?'\\n'+p.itemDetail:'')]);
+    if(p.aircon) detail.push(['エアコン', acText(p.aircon).replace('エアコン：','')]);
+  }
+  if(p.requestType==='引っ越しに伴う買取'){
+    detail.push(['お引き取りのご希望', p.moveMode]);
+    if(p.moveMode==='期日が決まっている') detail.push(['最終引き上げ日', [p.lastDate?fmtDate(p.lastDate):'', p.lastDateText].filter(Boolean).join(' ')]);
+    if(p.moveMode==='当日回収を希望') detail.push(['お引き取りの範囲', p.scope]);
+    detail.push(['大きなお品物', p.largeItems.length? largeText(p.largeItems) : 'なし']);
+  }
+  if(p.requestType==='遺品整理') detail.push(['期限', p.ihinHas==='期限がある' ? [p.ihinDate?fmtDate(p.ihinDate):'', p.ihinText].filter(Boolean).join(' ') : p.ihinHas]);
+  if(p.requestType==='その他') detail.push(['ご依頼の内容', p.otherText]);
+  const rows=[
+    ['お申し込みの種類', p.consult?'まずは相談':'日時を選んで申し込み'],
+    ['ご依頼の種類', p.requestType],
+    ...detail,
+    ['写真', p.photos.length? p.photos.length+'枚':'なし'],
+    ['お伺い先', \`\${p.city} \${p.address||'（番地は未記入）'}\` + (p.building?'\\n'+p.building:'')],
+    [$('dateTitle').textContent, p.consult ? (val('wishText')||'（相談のうえ決定）') : state.wishes.map((w,i)=>\`第\${i+1}希望：\${fmtDate(w.date)} \${w.label}\`).join('\\n') + (val('wishText')?'\\nその他のご希望：'+val('wishText'):'')],
+    ['お名前', p.name + (p.kana?\`（\${p.kana}）\`:'')],
+    ['電話番号', p.tel],
+    ['メール', p.email||'—'],
+    ['確定のご連絡方法', state.line?'LINE':'メール'],
+    ['ご要望', p.request||'—']
+  ];
+  $('summary').innerHTML = rows.map(([k,v])=>\`<dt>\${k}</dt><dd>\${esc(v)}</dd>\`).join('');
+}
+
+/* ---------- 画面遷移 ---------- */
+let step='form';
+function go(s){
+  step=s;
+  $('viewForm').classList.toggle('hidden', s!=='form');
+  $('viewConfirm').classList.toggle('hidden', s!=='confirm');
+  $('viewDone').classList.toggle('hidden', s!=='done');
+  $('backBtn').classList.toggle('hidden', s!=='confirm');
+  $('bar').classList.toggle('hidden', s==='done');
+  $('nextBtn').textContent = s==='form' ? '入力内容を確認する' : 'この内容で申し込む';
+  window.scrollTo({top:0});
+}
+$('backBtn').onclick = ()=>go('form');
+$('nextBtn').onclick = async ()=>{
+  if(step==='form'){ if(check()){ showSummary(); go('confirm'); } return; }
+  const btn=$('nextBtn'); btn.disabled=true; btn.textContent='送信中…';
+  try{
+    let res;
+    if(CONFIG.API_URL){
+      // Content-Typeを付けない（text/plain）ことで、Apps Scriptへ直接送信できます
+      res = await (await fetch(CONFIG.API_URL,{method:'POST',body:JSON.stringify(payload())})).json();
+    } else {
+      await new Promise(r=>setTimeout(r,600)); const n=new Date(); res={ok:true,id:'R'+String(n.getFullYear()).slice(2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+String(n.getSeconds()).padStart(2,'0')};
+    }
+    if(!res.ok){
+      if(res.error==='slot_taken'){ alert('申し訳ありません。選択された日時がちょうど埋まってしまいました。別の日時をお選びください。'); state.wishes=[]; renderWishes(); go('form'); loadSlots(); }
+      else alert(res.message || '送信できませんでした。時間をおいて再度お試しいただくか、お電話でお問い合わせください。');
+      return;
+    }
+    $('doneId').textContent=res.id;
+    const via = state.line ? 'LINE' : 'メール';
+    $('doneMsg').textContent = state.mode==='consult'
+      ? \`ご相談を受け付けました。内容を確認し、当店から\${via}またはお電話でご連絡いたします。\`
+      : \`まだ予約は確定していません。当店で日程を確認し、\${via}で確定のご連絡をお送りします。\` + (state.line?'':'受付確認メールもお送りしました。');
+    go('done');
+    if(window.parent!==window){ const pl=payload(); pl.photos=pl.photos.length; window.parent.postMessage({type:'booking',id:res.id,payload:pl,line:!!state.line,lineName:state.line?state.line.displayName:''},'*'); }
+    // LINE内で開いている場合、トークに受付メッセージを残す（無料・通数にカウントされません）
+    if(state.line && typeof liff!=='undefined' && liff.isInClient()){
+      liff.sendMessages([{type:'text',text:\`出張買取を\${state.mode==='consult'?'相談しました':'申し込みました'}（\${$('reqType').value}）。\\n受付番号：\${res.id}\`}]).catch(()=>{});
+    }
+  }catch(e){
+    alert('通信エラーが発生しました。電波の良い場所で再度お試しください。');
+  }finally{ btn.disabled=false; if(step==='confirm') btn.textContent='この内容で申し込む'; }
+};
+
+// デモ：お店の画面（予約一覧・スタッフ予定）から受け取った空き状況を反映
+function applyAvail(){
+  const m=state.availMap; if(!m) return;
+  state.days.forEach(d=>{ d.slots.forEach(s=>{ const k=d.date+'|'+s.start; if(k in m) s.available=m[k]; }); });
+  state.wishes = state.wishes.filter(w=>{ const k=w.date+'|'+w.start; return !(k in m) || m[k]; });
+  renderWishes();
+}
+/* ---------- 起動 ---------- */
+$('telLink').textContent=CONFIG.SHOP_TEL; $('telLink').href='tel:'+CONFIG.SHOP_TEL.replace(/-/g,'');
+window.addEventListener('message', e=>{
+  const d=e.data||{};
+  if(d.type==='avail'){ state.availMap=d.map; applyAvail(); renderDays(); renderSlots(); }
+  if(d.type==='simLine'){
+    if(d.on){ state.line={idToken:'demo',displayName:'デモ 太郎'}; $('lineBox').classList.remove('hidden');
+      $('lineMsg').textContent='デモ 太郎 さんのLINEでログイン中です。予約の確定連絡はこのLINEにお送りします。';
+      $('emailReq').className='opt'; $('emailReq').textContent='任意'; }
+    else { state.line=null; $('lineBox').classList.add('hidden'); $('emailReq').className='req'; $('emailReq').textContent='必須'; }
+  }
+});
+renderItems(); renderLarge(); initLine(); loadSlots();
+<\/script>
+</body>
+</html>
+`;
+const $=id=>document.getElementById(id);
+const WD=['日','月','火','水','木','金','土'];
+const STATUS=['未対応','承認','お断り','キャンセル','完了'];
+const STAFF={'ライン1':'var(--l1)','ライン2':'var(--l2)'};
+const SHOP='信州COWCOW堂', TEL='026-000-0000';
+let blocks=[], bookings=[], msgs=[], weekStart=null, unreadList=0, unreadMsg=0, openDetail=null;
+
+const pad=n=>String(n).padStart(2,'0');
+const ymdOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dOf=ymd=>{const [y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d);};
+const addDays=(ymd,n)=>{const d=dOf(ymd);d.setDate(d.getDate()+n);return ymdOf(d);};
+const short=ymd=>{const d=dOf(ymd);return `${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;};
+const jp=ymd=>{const d=dOf(ymd);return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${WD[d.getDay()]})`;};
+const slot=h=>`${h}:00〜${h+3}:00`;
+const nowStr=()=>{const n=new Date();return `${n.getMonth()+1}/${n.getDate()} ${pad(n.getHours())}:${pad(n.getMinutes())}`;};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),3200);}
+
+/* ---------- 予約データの要約（実際のプログラムと同じ考え方） ---------- */
+function largeText(list){return (list||[]).map(x=>`${x.name}${x.type?'（'+x.type+'）':''}${x.note?'：'+x.note:''} ／ ${x.floor}`).join('\n');}
+function itemSummary(p){
+  if(p.requestType==='売りたいものがある') return p.items.join('、');
+  if(p.requestType==='引っ越しに伴う買取'){const n=(p.largeItems||[]).map(x=>x.name);return '引っ越しに伴う買取'+(n.length?'（'+n.join('、')+'ほか）':'');}
+  return p.requestType;
+}
+function acText(a){
+  if(!a) return '';
+  if(a.state!=='取り外しが必要') return 'エアコン：'+(a.state||'未選択');
+  return `エアコン：取り外しが必要／室内機 ${a.indoor}／室外機 ${a.outdoor}${a.wall?'（※壁付けのため当社では取り外し不可）':''}`;
+}
+function condText(p){
+  if(p.requestType==='売りたいものがある') return acText(p.aircon);
+  const ds=(ymd,t)=>[ymd?jp(ymd):'',t||''].filter(Boolean).join(' ');
+  if(p.requestType==='引っ越しに伴う買取'){
+    if(p.moveMode==='期日が決まっている') return '期日あり／最終引き上げ日：'+ds(p.lastDate,p.lastDateText);
+    if(p.moveMode==='当日回収を希望') return '当日回収希望／'+p.scope;
+  }
+  if(p.requestType==='遺品整理') return p.ihinHas==='期限がある'?'期限：'+ds(p.ihinDate,p.ihinText):'期限なし';
+  return '';
+}
+
+/* ---------- お客様への連絡文（実際のプログラムと同じ文面） ---------- */
+const footer=`\n\nご不明な点・日時の変更は ${TEL} までお気軽にご連絡ください。\n${SHOP}`;
+const block=b=>`■日時：${jp(b.cDate)} ${slot(b.cStart)} の間にお伺いします\n■ご住所：${b.p.city} ${b.p.address||''}\n■ご依頼内容：${itemSummary(b.p)}\n■受付番号：${b.id}`;
+const T={
+  confirm:b=>[`【信州COWCOW堂】出張買取のご予約が確定しました`,`${b.p.name} 様\n\nこの度は${SHOP}の出張買取にお申し込みいただき、ありがとうございます。\nご予約が確定しましたのでお知らせします。\n\n${block(b)}\n\n当日は担当者がお伺いします。到着が前後する場合はお電話でご連絡します。`+footer],
+  change:b=>[`【信州COWCOW堂】出張買取のご予約日時を変更しました`,`${b.p.name} 様\n\nご予約の日時を下記のとおり変更しました。\n\n${block(b)}`+footer],
+  decline:b=>[`【信州COWCOW堂】出張買取のお申し込みについて`,`${b.p.name} 様\n\nこの度は${SHOP}の出張買取にお申し込みいただき、ありがとうございます。\n誠に申し訳ございませんが、ご希望の日時ではお伺いすることができませんでした。\n別の日時でのご相談も承りますので、お手数ですがご連絡いただけますと幸いです。\n\n■受付番号：${b.id}`+footer],
+  cancel:b=>[`【信州COWCOW堂】出張買取のキャンセルを承りました`,`${b.p.name} 様\n\n出張買取のご予約（受付番号：${b.id}）のキャンセルを承りました。\nまたのご利用をお待ちしております。`+footer],
+  receipt:b=>[b.p.consult?`【信州COWCOW堂】出張買取のご相談を受け付けました`:`【信州COWCOW堂】出張買取のお申し込みを受け付けました`,`${b.p.name} 様\n\n${b.p.consult?`${SHOP}の出張買取にご相談いただき、ありがとうございます。\n以下の内容で受け付けました。\n\n内容を確認し、当店からあらためてご連絡いたします。`:`${SHOP}の出張買取にお申し込みいただき、ありがとうございます。\n以下の内容で受け付けました。\n\n※まだ予約は確定していません。当店で日程を確認し、あらためて確定のご連絡をお送りします。`}\n\n■受付番号：${b.id}\n■ご希望日時\n${b.p.wishes.map((w,i)=>`第${i+1}希望：${jp(w.date)} ${slot(w.start)}`).join('\n')||'（ご相談のうえ決定）'}${b.p.wishText?'\nその他のご希望：'+b.p.wishText:''}\n■ご住所：${b.p.city} ${b.p.address||''}\n■ご依頼内容：${itemSummary(b.p)}`+footer]
+};
+function sendCustomer(b,kind){
+  const [subject,body]=T[kind](b);
+  const via=b.line?'LINE':'メール';
+  msgs.unshift({kind:via==='LINE'?'line':'mail',to:b.p.name,email:b.p.email,lineName:b.lineName,subject,body,at:nowStr(),userMsg:null});
+  bumpMsg(); return via;
+}
+function notifyStaff(b){
+  const p=b.p;
+  const body=`${p.consult?'新しい出張買取のご相談がありました。\nお客様に連絡し、日時が決まったら確定日時と担当者を入れて「承認」にしてください。':'新しい出張買取の申し込みがありました。\n予約一覧で担当者を選び、ステータスを「承認」にしてください。'}\n\n受付ID：${b.id}\nお名前：${p.name}\n電話：${p.tel}\n住所：${p.city} ${p.address||'（番地未記入）'}\nご依頼：${p.requestType}\n品目：${itemSummary(p)}\n${(p.itemDetail||p.otherText)?'詳細：'+(p.itemDetail||p.otherText)+'\n':''}${condText(p)?'条件・期限：'+condText(p)+'\n':''}${(p.largeItems||[]).length?'大きな品物：\n'+largeText(p.largeItems)+'\n':''}${p.wishes.map((w,i)=>`第${i+1}希望：${jp(w.date)} ${slot(w.start)}`).join('\n')}\n${p.wishText?'その他の希望日時：'+p.wishText+'\n':''}連絡方法：${b.line?'LINE':'メール'}`;
+  msgs.unshift({kind:'staff',subject:`【新規${p.consult?'相談':'受付'}：${p.requestType}】${p.city} ${p.name}様`,body,at:nowStr()});
+  bumpMsg();
+}
+function bumpMsg(){ if(curTab!=='msg'){unreadMsg++;} renderBadges(); renderMsgs(); }
+
+/* ---------- 予約一覧 ---------- */
+function addBooking(id,p,line,lineName,silent){
+  const b={id,p,line,lineName,status:'未対応',staff:'',cDate:p.wishes[0]?p.wishes[0].date:'',cStart:p.wishes[0]?p.wishes[0].start:0,via:'',isNew:!silent};
+  bookings.unshift(b);
+  if(!silent){
+    notifyStaff(b);
+    if(line) msgs.unshift({kind:'line',lineName,userMsg:`出張買取を申し込みました（${p.requestType}）。\n受付番号：${id}`,at:nowStr()});
+    else { const [s,body]=T.receipt(b); msgs.unshift({kind:'mail',to:p.name,email:p.email,subject:s,body,at:nowStr()}); }
+    if(curTab!=='list') unreadList++;
+    renderBadges(); renderMsgs();
+    toast(`新しい予約が入りました（${p.name}様）。お店の画面で確認してください`);
+  }
+  renderList(); renderCal(); if(!silent) sendAvail();
+}
+function choiceOptions(b){
+  const opts=b.p.wishes.map((w,i)=>({v:`${w.date}|${w.start}`,t:`第${i+1}希望 ${short(w.date)} ${slot(w.start)}`}));
+  const cur=b.cDate?`${b.cDate}|${b.cStart}`:'';
+  if(!b.cDate) opts.unshift({v:'',t:'（未定）日時を選ぶ'});
+  else if(!opts.some(o=>o.v===cur)) opts.push({v:cur,t:`${short(b.cDate)} ${slot(b.cStart)}`});
+  // 他の日時にも変えられるように（第1希望日、相談の場合は明日から2週間）
+  const base=b.p.wishes[0]?[b.p.wishes[0].date]:[...Array(14)].map((_,i)=>addDays(ymdOf(new Date()),i+1));
+  base.forEach(d=>[9,10,11,12,13,14,15,16].forEach(h=>{const v=`${d}|${h}`; if(!opts.some(o=>o.v===v)) opts.push({v,t:`${short(d)} ${slot(h)}`});}));
+  return opts.map(o=>`<option value="${o.v}"${o.v===cur?' selected':''}>${o.t}</option>`).join('');
+}
+function renderList(){
+  if(!bookings.length){$('tbody').innerHTML='<tr><td colspan="11" class="empty">まだ予約はありません。左のスマホ画面から予約してみてください。</td></tr>';return;}
+  $('tbody').innerHTML=bookings.map((b,i)=>{
+    const p=b.p, cond=condText(p);
+    const row=`<tr class="row${b.isNew?' new':''}" data-i="${i}">
+      <td style="white-space:nowrap">${b.id}</td>
+      <td class="st-${b.status}"><select data-f="status">${STATUS.map(s=>`<option${s===b.status?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select data-f="staff"><option value="">（選択）</option>${Object.keys(STAFF).map(s=>`<option${s===b.staff?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select data-f="dt">${choiceOptions(b)}</select></td>
+      <td style="white-space:nowrap">${p.consult?'<span class="tag staff">相談</span>':''}${esc(p.name)}</td>
+      <td style="white-space:nowrap">${esc(p.requestType)}</td>
+      <td style="white-space:nowrap">${esc(p.city)}</td>
+      <td>${esc(itemSummary(p))}${cond?'<br><span class="via">'+esc(cond)+'</span>':''}</td>
+      <td>${b.line?'LINE':'メール'}</td>
+      <td class="via">${esc(b.via)}</td>
+      <td><button class="more" data-f="more">${openDetail===b.id?'閉じる':'詳細'}</button></td></tr>`;
+    const det = openDetail===b.id ? `<tr class="detail"><td colspan="11">${esc(detailText(b))}</td></tr>` : '';
+    b.isNew=false;
+    return row+det;
+  }).join('');
+}
+function detailText(b){
+  const p=b.p;
+  return [`お名前：${p.name}${p.kana?'（'+p.kana+'）':''}　電話：${p.tel}　メール：${p.email||'—'}`,
+    `住所：${p.city} ${p.address||'（番地未記入）'}${p.building?'（'+p.building+'）':''}`,
+    `ご依頼：${p.requestType}　内容：${itemSummary(p)}`,
+    (p.itemDetail||p.otherText)?`詳細：${p.itemDetail||p.otherText}`:'',
+    condText(p)?`条件・期限：${condText(p)}`:'',
+    (p.largeItems||[]).length?`大きな品物：\n${largeText(p.largeItems)}`:'',
+    p.wishes[0]?`第1希望：${short(p.wishes[0].date)} ${slot(p.wishes[0].start)}`:'受付区分：相談（日時未定）',
+    p.wishText?`その他の希望日時：${p.wishText}`:'',
+    `写真：${p.photos?p.photos+'枚（Googleドライブに保存）':'なし'}`,
+    p.request?`ご要望：${p.request}`:''].filter(Boolean).join('\n');
+}
+$('tbody').addEventListener('change',e=>{
+  const tr=e.target.closest('tr.row'); if(!tr) return; const b=bookings[+tr.dataset.i]; const f=e.target.dataset.f;
+  if(f==='status'){
+    const ns=e.target.value, old=b.status;
+    if(ns==='承認'){
+      if(!b.staff){ e.target.value=old; toast('先に「担当者」を選んでから「承認」にしてください'); return; }
+      if(!b.cDate){ e.target.value=old; toast('ご相談の受付です。お客様と日時を決めて「確定日時」を選んでから承認してください'); return; }
+      b.status=ns; b.via=`確定連絡 ${sendCustomer(b,'confirm')} ${nowStr()}`;
+      toast(`カレンダーに登録しました（連絡：${b.line?'LINE':'メール'}）`); weekStart=startOfWeek(b.cDate);
+    } else if(ns==='お断り'){ b.status=ns; b.via=`お断り連絡 ${sendCustomer(b,'decline')} ${nowStr()}`; toast('お断りの連絡をしました'); }
+    else if(ns==='キャンセル'){ b.status=ns; b.via=`キャンセル連絡 ${sendCustomer(b,'cancel')} ${nowStr()}`; toast('カレンダーから削除し、キャンセルの連絡をしました'); }
+    else { b.status=ns; }
+  }
+  if(f==='staff'){ b.staff=e.target.value; if(b.status==='承認') toast('カレンダーの担当者（色）を更新しました'); }
+  if(f==='dt'){
+    if(!e.target.value) return; const [d,h]=e.target.value.split('|'); b.cDate=d; b.cStart=+h;
+    if(b.status==='承認'){ b.via=`日時変更連絡 ${sendCustomer(b,'change')} ${nowStr()}`; toast('カレンダーを更新し、日時変更をお客様に連絡しました'); weekStart=startOfWeek(b.cDate); }
+  }
+  renderList(); renderCal(); sendAvail();
+});
+$('tbody').addEventListener('click',e=>{
+  if(e.target.dataset.f!=='more') return; const b=bookings[+e.target.closest('tr').dataset.i];
+  openDetail = openDetail===b.id ? null : b.id; renderList();
+});
+
+/* ---------- カレンダー ---------- */
+function startOfWeek(ymd){ return ymd; }
+function renderCal(){
+  if(!weekStart) weekStart=addDays(ymdOf(new Date()),1);
+  const days=[...Array(7)].map((_,i)=>addDays(weekStart,i));
+  $('calTitle').textContent=`${short(days[0])} 〜 ${short(days[6])}`;
+  let h='<div class="ch"></div>'+days.map(d=>{const w=dOf(d).getDay();return `<div class="ch ${w===0?'sun':w===6?'sat':''}">${WD[w]}<div class="dn">${dOf(d).getDate()}</div></div>`;}).join('');
+  h+='<div class="tcol">'+[...Array(10)].map((_,i)=>`<div>${9+i}:00</div>`).join('')+'</div>';
+  h+=days.map(d=>{
+    const evs=bookings.filter(b=>(b.status==='承認'||b.status==='完了')&&b.cDate===d);
+    const bl=blocks.filter(x=>x.date===d).map(x=>{
+      const s=x.all?9:x.from, e=x.all?19:x.to, lane=x.who==='ライン2'?1:0, full=x.who==='全員';
+      return `<div class="ev blk" data-blk="${x.id}" title="押すと削除" style="top:${(s-9)*44}px;height:${(e-s)*44-3}px;left:${full?0:lane?50:0}%;width:${full?'calc(100% - 2px)':'calc(50% - 2px)'}"><b>${esc(x.who+' '+x.what)}</b>${x.all?'終日':x.from+':00〜'+x.to+':00'}<br>（押すと削除）</div>`;
+    }).join('');
+    return `<div class="dcol" style="height:440px">${bl}${evs.map(b=>{
+      const top=(b.cStart-9)*44, ht=3*44-3; const lane=b.staff==='ライン2'?1:0;
+      const tag={'引っ越しに伴う買取':'引越','遺品整理':'遺品整理','その他':'その他'}[b.p.requestType]||'買取';
+      return `<div class="ev" data-id="${b.id}" style="top:${top}px;height:${ht}px;left:${lane?50:0}%;width:calc(50% - 2px);background:${STAFF[b.staff]||'#888'}"><b>【出張${tag}】${b.staff}</b>${esc(b.p.name)}様<br>${esc(b.p.city)}<br>${slot(b.cStart)}</div>`;
+    }).join('')}</div>`;
+  }).join('');
+  $('cal').innerHTML=h;
+}
+$('cal').addEventListener('click',e=>{
+  const bk=e.target.closest('.ev.blk'); if(bk){ blocks=blocks.filter(x=>x.id!==bk.dataset.blk); renderCal(); sendAvail(); toast('予定を削除しました。受付枠が戻りました'); return; }
+  const ev=e.target.closest('.ev'); if(!ev) return; const b=bookings.find(x=>x.id===ev.dataset.id);
+  const tag={'引っ越しに伴う買取':'引越','遺品整理':'遺品整理','その他':'その他'}[b.p.requestType]||'買取';
+  $('evd').hidden=false;
+  $('evd').textContent=`【出張${tag}】${b.staff}｜${b.p.name}様（${b.p.city}）\n${jp(b.cDate)} ${slot(b.cStart)}\n場所：長野県${b.p.city}${b.p.address||''}\n──────────\n受付ID：${b.id}\n到着時間帯：${slot(b.cStart)} の間にお伺い\n`+detailText(b);
+});
+$('prevW').onclick=()=>{weekStart=addDays(weekStart,-7);renderCal();};
+$('nextW').onclick=()=>{weekStart=addDays(weekStart,7);renderCal();};
+
+/* ---------- 空き状況（実際のプログラムと同じルール） ---------- */
+function computeAvail(){
+  const map={}, start=ymdOf(new Date()), end=new Date(new Date().getFullYear(),new Date().getMonth()+2,0);
+  for(let d=addDays(start,1); dOf(d)<=end; d=addDays(d,1)){
+    [9,10,11,12,13,14,15,16].forEach(h=>{
+      const used=bookings.filter(b=>{
+        if(b.status==='承認'||b.status==='完了') return b.cDate===d&&b.cStart===h;
+        if(b.status==='未対応') return !!b.p.wishes[0]&&b.p.wishes[0].date===d&&b.p.wishes[0].start===h;
+        return false;}).length;
+      const busy={};
+      blocks.filter(x=>x.date===d).forEach(x=>{ const s=x.all?0:x.from, e=x.all?24:x.to; if(s<h+3&&e>h) busy[x.who==='全員'?'*':x.who]=true; });
+      const cap=busy['*']?0:Math.max(0,2-Object.keys(busy).length);
+      map[d+'|'+h]=used<cap;
+    });
+  }
+  return map;
+}
+function sendAvail(){ try{$('cust').contentWindow.postMessage({type:'avail',map:computeAvail()},'*');}catch(_){} }
+(function initBlockForm(){
+  const t=ymdOf(new Date()); const end=new Date(new Date().getFullYear(),new Date().getMonth()+2,0); let o='';
+  for(let d=addDays(t,1); dOf(d)<=end; d=addDays(d,1)) o+=`<option value="${d}">${short(d)}</option>`;
+  $('bDate').innerHTML=o;
+  $('bFrom').innerHTML=[...Array(10)].map((_,i)=>`<option${i===0?' selected':''}>${9+i}</option>`).join('');
+  $('bTo').innerHTML=[...Array(10)].map((_,i)=>`<option${i===2?' selected':''}>${10+i}</option>`).join('');
+  $('bAll').onchange=()=>{$('bFrom').disabled=$('bTo').disabled=$('bAll').checked;};
+  $('bAdd').onclick=()=>{
+    const from=+$('bFrom').value, to=+$('bTo').value;
+    if(!$('bAll').checked && to<=from){ toast('終了は開始より後にしてください'); return; }
+    blocks.push({id:'b'+Date.now(),who:$('bWho').value,date:$('bDate').value,from,to,all:$('bAll').checked,what:$('bWhat').value||'予定'});
+    weekStart=$('bDate').value; renderCal(); sendAvail();
+    toast(`「${$('bWho').value} ${$('bWhat').value}」を追加しました。お客様画面のその日の受付枠が減っています`);
+  };
+})();
+
+/* ---------- 送信された連絡 ---------- */
+function renderMsgs(){
+  if(!msgs.length){$('msgs').innerHTML='<div class="empty">まだ連絡はありません。</div>';return;}
+  $('msgs').innerHTML=msgs.map(m=>{
+    if(m.kind==='staff') return `<div class="msg"><div class="mh"><span class="tag staff">社内通知メール</span>${m.at}</div><div class="mail"><div class="mt">件名：${esc(m.subject)}<br>宛先：社内（NOTIFY_EMAILに設定したアドレス）</div><div class="mb">${esc(m.body)}</div></div></div>`;
+    if(m.kind==='line') return `<div class="msg"><div class="mh"><span class="tag line">LINE</span>${m.at}　${m.userMsg?'お客様のトーク画面（お客様側から自動で送信／通数にカウントされません）':'お客様のトーク画面に届いたメッセージ'}</div><div class="lineChat">${m.userMsg?`<div class="bubble me">${esc(m.userMsg)}</div>`:`<div class="lineName">${SHOP}</div><div class="bubble">${esc(m.body)}</div>`}</div></div>`;
+    return `<div class="msg"><div class="mh"><span class="tag mail">メール</span>${m.at}</div><div class="mail"><div class="mt">件名：${esc(m.subject)}<br>宛先：${esc(m.to)} 様（${esc(m.email)}）　差出人：${SHOP}</div><div class="mb">${esc(m.body)}</div></div></div>`;
+  }).join('');
+}
+
+/* ---------- タブ ---------- */
+let curTab='list';
+document.querySelector('.ptabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return; curTab=b.dataset.t;
+  document.querySelectorAll('.ptabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['list','cal','msg'].forEach(t=>$('v_'+t).hidden=t!==curTab);
+  if(curTab==='list') unreadList=0; if(curTab==='msg') unreadMsg=0; renderBadges();
+});
+function renderBadges(){
+  $('b_list').innerHTML=unreadList?`<span class="badge">${unreadList}</span>`:'';
+  $('b_msg').innerHTML=unreadMsg?`<span class="badge">${unreadMsg}</span>`:'';
+  const t=unreadList+unreadMsg; $('mBadge').innerHTML=t&&!$('wrap').classList.contains('showStaff')?`<span class="badge">${t}</span>`:'';
+}
+$('mtC').onclick=()=>{$('wrap').classList.remove('showStaff');$('mtC').classList.add('on');$('mtS').classList.remove('on');};
+$('mtS').onclick=()=>{$('wrap').classList.add('showStaff');$('mtS').classList.add('on');$('mtC').classList.remove('on');renderBadges();};
+
+/* ---------- お客様画面とのやり取り ---------- */
+window.addEventListener('message',e=>{
+  const d=e.data||{}; if(d.type!=='booking') return;
+  addBooking(d.id,d.payload,d.line,d.lineName,false);
+});
+const sendSim=()=>{try{$('cust').contentWindow.postMessage({type:'simLine',on:$('simLine').checked},'*');}catch(_){}};
+$('simLine').onchange=sendSim;
+$('cust').addEventListener('load',()=>{sendSim();sendAvail();});
+$('reload').onclick=()=>{$('cust').srcdoc=CUSTOMER_HTML;};
+$('cust').srcdoc=CUSTOMER_HTML;
+
+/* ---------- 見本データ ---------- */
+(function seed(){
+  const t1=addDays(ymdOf(new Date()),1), t2=addDays(ymdOf(new Date()),2), t3=addDays(ymdOf(new Date()),3);
+  addBooking('R-SAMPLE1',{requestType:'引っ越しに伴う買取',items:[],moveMode:'当日回収を希望',scope:'買取できない物の片付けも相談したい',
+    largeItems:[{name:'冷蔵庫',type:'ファミリー用（大型）',note:'',floor:'2階（普通の外階段）'},{name:'洗濯機',type:'5kg以上',note:'',floor:'2階（普通の外階段）'}],
+    city:'長野市',address:'大字鶴賀〇〇 12-3',building:'〇〇ハイツ201',wishes:[{date:t1,start:9}],name:'見本 花子',kana:'ミホン ハナコ',tel:'090-0000-0001',email:'sample1@example.com',request:'',photos:0},false,'',true);
+  bookings[0].status='承認'; bookings[0].staff='ライン1'; bookings[0].via='確定連絡 メール（見本）';
+  addBooking('R-SAMPLE2',{requestType:'売りたいものがある',items:['カメラ','オーディオ'],itemDetail:'一眼レフ2台、アンプ',
+    city:'松本市',address:'中央〇〇 4-5',building:'',wishes:[{date:t2,start:13}],wishText:'平日の午後ならいつでも大丈夫です',name:'見本 一郎',kana:'',tel:'090-0000-0002',email:'sample2@example.com',request:'到着前に電話がほしい',photos:2},true,'見本 一郎',true);
+  renderList(); renderCal(); renderMsgs();
+})();
+</script>
+</body>
+</html>

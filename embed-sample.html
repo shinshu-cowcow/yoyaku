@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>埋め込み見本｜信州COWCOW堂 出張買取</title>
+<style>
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;color:#222;background:#fff}
+  .note{background:#333;color:#ffd54f;text-align:center;font-size:12px;padding:6px}
+  .hero{background:linear-gradient(135deg,#1f5f8b,#2c7fb8);color:#fff;text-align:center;padding:48px 16px}
+  .hero h1{margin:0 0 8px;font-size:26px}
+  .hero p{margin:0 0 20px;opacity:.9}
+  .btn{display:inline-block;background:#e8743b;color:#fff;font-weight:700;padding:14px 28px;border-radius:999px;text-decoration:none;font-size:16px}
+  section{max-width:640px;margin:0 auto;padding:32px 16px}
+  section h2{font-size:20px;border-left:5px solid #1f5f8b;padding-left:10px}
+  .dummy{background:#f4f6f8;border-radius:10px;padding:18px;color:#666;line-height:1.8}
+  .yoyaku-wrap{background:#f4f6f8;border-radius:14px;padding:4px 0}
+  pre{background:#f6f8fa;border:1px solid #ddd;border-radius:8px;padding:12px;font-size:12px;overflow:auto;white-space:pre-wrap}
+  .log{font-size:12px;color:#2e8b57}
+</style>
+</head>
+<body>
+<div class="note">これはLPに埋め込んだときの見本ページです（本物のLPではありません）。フォームは本番につながっています。</div>
+
+<div class="hero">
+  <h1>出張買取なら 信州COWCOW堂</h1>
+  <p>中信・東信・北信エリア 出張査定無料</p>
+  <a href="#" class="btn" data-cowcow-yoyaku-open>今すぐ予約する（ポップアップ）</a>
+</div>
+
+<section>
+  <h2>LPの本文（見本）</h2>
+  <div class="dummy">ここにLPの説明・買取実績・お客様の声などが入ります。<br>このページから離れずに、下のフォームやボタンから予約できます。</div>
+</section>
+
+<section id="yoyaku">
+  <h2>ご予約はこちら（LPの中に表示）</h2>
+  <div class="yoyaku-wrap">
+    <div data-cowcow-yoyaku="inline"></div>
+  </div>
+  <p class="log" id="log"></p>
+</section>
+
+<section>
+  <h2>LPに貼り付けるタグ</h2>
+  <p>LPの中に表示する場合（予約フォームを置きたい場所に）：</p>
+  <pre>&lt;div data-cowcow-yoyaku="inline"&gt;&lt;/div&gt;
+&lt;script src="https://shinshu-cowcow.github.io/yoyaku/embed.js" async&gt;&lt;/script&gt;</pre>
+  <p>ボタンでポップアップ表示する場合（既存ボタンに属性を1つ追加）：</p>
+  <pre>&lt;a href="#" data-cowcow-yoyaku-open&gt;今すぐ予約する&lt;/a&gt;
+&lt;script src="https://shinshu-cowcow.github.io/yoyaku/embed.js" async&gt;&lt;/script&gt;</pre>
+</section>
+
+<script src="embed.js" async></script>
+<script>
+  // 計測イベントの受け取り例（見本のため画面に表示）
+  window.addEventListener('cowcowYoyaku', function (e) {
+    var names = { open: 'ポップアップを開いた', start: '予約を開始した', complete: '予約が完了した' };
+    document.getElementById('log').textContent = '計測イベント：' + (names[e.detail.type] || e.detail.type) + (e.detail.requestType ? '（' + e.detail.requestType + '）' : '');
+  });
+</script>
+</body>
+</html>

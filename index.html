@@ -299,7 +299,15 @@
     <label class="f" for="tel">電話番号<span class="req">必須</span></label>
     <input type="tel" id="tel" placeholder="例）090-1234-5678" autocomplete="tel">
     <div class="err" id="e_tel">電話番号を正しく入力してください</div>
-    <label class="f" for="email">メールアドレス<span class="req" id="emailReq">必須</span></label>
+    <label class="f">当店からのご連絡方法<span class="req">必須</span></label>
+    <div class="seg" id="contactSeg" style="margin-top:4px">
+      <button type="button" data-v="LINE" id="contactLine">LINE</button>
+      <button type="button" data-v="メール">メール</button>
+      <button type="button" data-v="電話">電話</button>
+    </div>
+    <div class="err" id="e_contact">ご連絡方法を選んでください</div>
+    <p class="hint hidden" id="contactNote" style="margin:-4px 0 0"></p>
+    <label class="f" for="email">メールアドレス<span class="opt" id="emailReq">任意</span></label>
     <input type="email" id="email" placeholder="例）example@mail.com" autocomplete="email">
     <div class="err" id="e_email">メールアドレスを正しく入力してください（確定のご連絡に使います）</div>
     <label class="f" for="request">ご要望・ご質問<span class="opt">任意</span></label>
@@ -325,6 +333,10 @@
     <div>受付番号</div>
     <div class="id" id="doneId"></div>
     <p class="hint" id="doneMsg">まだ予約は確定していません。当店で日程を確認し、確定のご連絡をお送りします。</p>
+    <div id="lineGuide" class="hidden" style="margin:10px 0 14px">
+      <a id="lineAddBtn" href="#" target="_blank" rel="noopener" class="btn" style="display:block;background:#06c755;color:#fff;text-decoration:none;text-align:center">LINEで友だち追加する</a>
+      <p class="hint" style="margin-top:8px">友だち追加のあと、トークで<b>受付番号</b>を送ってください。LINEでご連絡いたします。</p>
+    </div>
     <p class="hint">お急ぎの場合はお電話でもどうぞ：<a id="telLink" href="#"></a></p>
   </div>
 </section>
@@ -390,7 +402,7 @@ function scrollToEl(el){
   else el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 let startedSent=false;
-const state = { mode:'book', items:new Set(), photos:[], days:[], dayIdx:-1, month:'', wishes:[], line:null };
+const state = { contact:'', mode:'book', items:new Set(), photos:[], days:[], dayIdx:-1, month:'', wishes:[], line:null };
 const WD = ['日','月','火','水','木','金','土'];
 
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -504,6 +516,25 @@ function onLimitChange(){
   }
   renderDays(); renderSlots(); renderWishes();
 }
+
+/* ---------- ご連絡方法 ---------- */
+function contactNote(v){
+  if(v==='LINE') return state.line ? 'このLINEにご連絡をお送りします。' : '送信後に表示される案内から、当店のLINE公式アカウントを友だち追加して受付番号を送ってください。LINEでご連絡します。';
+  if(v==='メール') return 'ご入力のメールアドレスにご連絡をお送りします。';
+  if(v==='電話') return 'お電話でご連絡します。つながりやすい時間帯があれば「ご要望・ご質問」にご記入ください。';
+  return '';
+}
+function setContact(v){
+  state.contact=v;
+  document.querySelectorAll('#contactSeg button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  $('emailReq').className = v==='メール' ? 'req' : 'opt';
+  $('emailReq').textContent = v==='メール' ? '必須' : '任意';
+  $('contactNote').textContent = contactNote(v); show('contactNote', !!v);
+  $('e_contact').classList.remove('show'); $('e_email').classList.remove('show');
+}
+$('contactSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setContact(b.dataset.v); });
+// LINE公式アカウントの友だち追加URLが未設定で、LINEの外から開いた場合はLINEを選べないようにする
+function updateLineOption(){ show('contactLine', !!(state.line || CONFIG.LINE_FRIEND_URL)); if(state.contact==='LINE' && !(state.line || CONFIG.LINE_FRIEND_URL)) setContact(''); }
 
 /* ---------- 予約／相談の切り替え ---------- */
 $('modeSeg').addEventListener('click', e=>{
@@ -657,7 +688,7 @@ async function initLine(){
     state.line = { idToken: liff.getIDToken(), displayName: profile.displayName };
     $('lineBox').classList.remove('hidden');
     $('lineMsg').textContent = `${profile.displayName} さんのLINEでログイン中です。予約の確定連絡はこのLINEにお送りします。`;
-    $('emailReq').className='opt'; $('emailReq').textContent='任意';
+    updateLineOption(); setContact('LINE');
     try{
       const f = await liff.getFriendship();
       if(!f.friendFlag && CONFIG.LINE_FRIEND_URL){ $('friendLink').href=CONFIG.LINE_FRIEND_URL; $('friendNote').classList.remove('hidden'); }
@@ -684,8 +715,9 @@ function check(){
     e_wish: state.mode==='book' && state.wishes.length===0,
     e_name: !val('name'),
     e_tel: !/^0\d{9,10}$/.test(val('tel').replace(/[-‐ー－\s()]/g,'')),
-    e_email: state.line ? (val('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email')))
-                        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))
+    e_contact: !state.contact,
+    e_email: state.contact==='メール' ? !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))
+                                    : (val('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email')))
   };
   let first=null;
   for(const [k,bad] of Object.entries(errs)){ $(k).classList.toggle('show',!!bad); if(bad&&!first) first=$(k); }
@@ -715,6 +747,7 @@ function payload(){
     consult: state.mode==='consult',
     wishes: state.mode==='consult' ? [] : state.wishes.map(w=>({date:w.date,start:w.start})), wishText:val('wishText'),
     name:val('name'), kana:val('kana'), tel:val('tel'), email:val('email'), request:val('request'),
+    contactPref: state.contact,
     lineIdToken: state.line ? state.line.idToken : '', website:val('website')
   };
 }
@@ -744,7 +777,7 @@ function showSummary(){
     ['お名前', p.name + (p.kana?`（${p.kana}）`:'')],
     ['電話番号', p.tel],
     ['メール', p.email||'—'],
-    ['確定のご連絡方法', state.line?'LINE':'メール'],
+    ['当店からのご連絡方法', state.contact],
     ['ご要望', p.request||'—']
   ];
   $('summary').innerHTML = rows.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
@@ -780,10 +813,13 @@ $('nextBtn').onclick = async ()=>{
       return;
     }
     $('doneId').textContent=res.id;
-    const via = state.line ? 'LINE' : 'メール';
+    const via = state.contact==='電話' ? 'お電話' : state.contact;
     $('doneMsg').textContent = state.mode==='consult'
-      ? `ご相談を受け付けました。内容を確認し、当店から${via}またはお電話でご連絡いたします。`
-      : `まだ予約は確定していません。当店で日程を確認し、${via}で確定のご連絡をお送りします。` + (state.line?'':'受付確認メールもお送りしました。');
+      ? `ご相談を受け付けました。内容を確認し、当店から${via}でご連絡いたします。`
+      : `まだ予約は確定していません。当店で日程を確認し、${via}で確定のご連絡をいたします。` + (state.contact==='メール'?'受付確認メールもお送りしました。':'');
+    const needAdd = state.contact==='LINE' && !state.line && CONFIG.LINE_FRIEND_URL;
+    show('lineGuide', !!needAdd);
+    if(needAdd) $('lineAddBtn').href = CONFIG.LINE_FRIEND_URL;
     go('done');
     toParent({event:'complete', id:res.id, requestType:$('reqType').value, consult: state.mode==='consult'});
     // LINE内で開いている場合、トークに受付メッセージを残す（無料・通数にカウントされません）
@@ -798,7 +834,7 @@ $('nextBtn').onclick = async ()=>{
 /* ---------- 起動 ---------- */
 $('telLink').textContent=CONFIG.SHOP_TEL; $('telLink').href='tel:'+CONFIG.SHOP_TEL.replace(/-/g,'');
 if(!CONFIG.API_URL) $('demoBanner').classList.remove('hidden');
-renderItems(); renderLarge(); initLine(); loadSlots();
+renderItems(); renderLarge(); updateLineOption(); initLine(); loadSlots();
 </script>
 </body>
 </html>

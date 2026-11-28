@@ -263,10 +263,59 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
 const store={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(_){}},del(k){try{localStorage.removeItem(k)}catch(_){}}};
 
 let CODE=''; let DATA=null;
+/* ---------- 練習モード（?demo=1）：本物のデータには一切触れません ---------- */
+const DEMO = /[?&]demo=1/.test(location.search);
+const DEMO_DB = (()=>{
+  if(!DEMO) return null;
+  const CC={'長野市':[36.6486,138.1948],'松本市':[36.2380,137.9720],'上田市':[36.4022,138.2491],'安曇野市':[36.3044,137.9058],'塩尻市':[36.1153,137.9535],'佐久市':[36.2489,138.4769],'千曲市':[36.5339,138.1199],'須坂市':[36.6510,138.3071],'小諸市':[36.3277,138.4258],'東御市':[36.3594,138.3302],'大町市':[36.5030,137.8513],'中野市':[36.7420,138.3700],'飯山市':[36.8513,138.3653],'山形村':[36.1667,137.8794],'池田町':[36.4215,137.8743],'軽井沢町':[36.3486,138.5971],'坂城町':[36.4614,138.1804]};
+  const staff=[{name:'清水',color:'#3F51B5'},{name:'白澤',color:'#039BE5'},{name:'土屋',color:'#8E24AA'},{name:'畠山',color:'#F6BF26'},{name:'斎藤',color:'#F4511E'}];
+  const col=n=>(staff.find(s=>s.name===n)||{}).color||'#888';
+  const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const day=i=>{const d=new Date();d.setDate(d.getDate()+i);return ymd(d);};
+  const jit=(c,k)=>[c[0]+((k*37)%17-8)/1000*3,c[1]+((k*53)%19-9)/1000*3];
+  const sample=[[2,'清水','松本市',10,'冷蔵庫、洗濯機'],[2,'清水','安曇野市',14,'カメラ'],[2,'白澤','長野市',9,'貴金属・時計'],[3,'白澤','塩尻市',13,'遺品整理'],[3,'土屋','上田市',10,'工具、除雪機'],[4,'清水','山形村',11,'家具'],[5,'土屋','佐久市',9,'オーディオ'],[5,'白澤','千曲市',15,'テレビ'],[6,'清水','松本市',13,'骨董品'],[8,'土屋','小諸市',10,'ゲーム'],[9,'白澤','松本市',9,'エアコン'],[9,'白澤','池田町',13,'冷蔵庫'],[11,'清水','須坂市',12,'刀剣'],[12,'土屋','東御市',14,'その他家電']];
+  const names=['青木','石井','上野','江口','大西','加藤','木村','工藤','小林','佐藤','島田','杉山','田中','中村'];
+  const points=sample.map((s,k)=>{const c=jit(CC[s[2]],k);return {id:'DEMO-'+(k+1),date:day(s[0]),slot:`${s[3]}:00〜${s[3]+3}:00`,start:s[3],tentative:false,staff:s[1],color:col(s[1]),
+    name:'（練習）'+names[k],tel:'000-0000-0000',city:s[2],address:'練習用の住所',building:'',requestType:'売りたいものがある',items:s[4],detail:'',condition:'',large:'',memo:'練習モードの架空データです',lat:c[0],lng:c[1],approx:false};});
+  points.push({id:'DEMO-T',date:day(4),slot:'16:00〜19:00',start:16,tentative:true,staff:'',color:'#9e9e9e',name:'（練習）未対応の申込',tel:'000',city:'松本市',address:'',building:'',requestType:'その他',items:'カメラ',detail:'',condition:'',large:'',memo:'',lat:36.25,lng:137.99,approx:true});
+  return {CC,staff,points,holds:[],seq:1,day};
+})();
+function demoDist(a,b){const R=6371,r=x=>x*Math.PI/180;const dl=r(b.lat-a.lat),dg=r(b.lng-a.lng);const h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function demoApi(body){
+  const D=DEMO_DB;
+  if(body.action==='staff_auth') return {ok:true};
+  if(body.action==='staff_data'){
+    let center=null; const c=D.CC[body.city];
+    if(body.city) center={lat:c?c[0]:36.3,lng:c?c[1]:138.1,approx:true,label:body.city+(body.address||'')};
+    const cands=[];
+    for(let i=1;i<=33;i++){
+      const date=D.day(i); const w=new Date(date).getDay();
+      const todays=D.points.filter(p=>p.date===date&&!p.tentative);
+      const slots=[9,10,11,12,13,14,15,16].map(h=>({start:h,label:`${h}:00〜${h+3}:00`,available:todays.filter(p=>p.start===h).length<2}));
+      const near=center?todays.map(p=>({id:p.id,staff:p.staff,color:p.color,city:p.city,slot:p.slot,start:p.start,km:Math.round(demoDist(center,p)*10)/10})).sort((a,b)=>a.km-b.km):[];
+      const minKm=near.length?near[0].km:null;
+      cands.push({date,slots,near,minKm,isNear:minKm!==null&&minKm<=15,count:todays.length,staffOnDay:[...new Set(todays.map(p=>p.staff))]});
+    }
+    cands.sort((a,b)=>(b.isNear-a.isNear)||(a.isNear&&b.isNear?a.minKm-b.minKm:0)||(a.date<b.date?-1:1));
+    return {ok:true,holds:D.holds,center,points:D.points,staff:D.staff,candidates:cands,nearKm:15,today:D.day(0)};
+  }
+  if(body.action==='staff_book'){
+    const id=body.holdId||('DEMO-N'+(D.seq++));
+    D.holds=D.holds.filter(h=>h.id!==id);
+    if(body.hold){ D.holds.push({id,name:body.name,tel:body.tel,city:body.city,items:body.items,callback:body.callback,at:'今',memo:body.memo,form:body.form}); return {ok:true,id,hold:true}; }
+    const c=D.CC[body.city]||[36.3,138.1];
+    D.points.push({id,date:body.date,slot:body.slotLabel,start:body.start,tentative:false,staff:body.staff,color:(D.staff.find(s=>s.name===body.staff)||{}).color||'#888',name:body.name,tel:body.tel,city:body.city,address:body.address,building:body.building,requestType:body.requestType,items:body.items,detail:body.detail,condition:body.condition,large:body.large,memo:body.memo,lat:c[0]+0.01,lng:c[1]+0.01,approx:false});
+    return {ok:true,id};
+  }
+  if(body.action==='staff_hold_cancel'){ D.holds=D.holds.filter(h=>h.id!==body.holdId); return {ok:true}; }
+  return {ok:false,error:'bad_action'};
+}
+
 const S={pref:'電話で伝えた',purpose:[],cats:[],appl:{},due:'',pick:'',crew:'',house:'',elev:'',maiso:false,date:'',start:null,month:'',holdId:''};
 const FIELDS=['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr','fCity','fFloor'];
 
 async function api(body){
+  if(DEMO) return JSON.parse(JSON.stringify(demoApi(body)));
   const res = await fetch(CONFIG.API_URL,{method:'POST',body:JSON.stringify(Object.assign({code:CODE},body))});
   return res.json();
 }
@@ -629,6 +678,9 @@ $('fCity').innerHTML='<option value="">選んでください</option>'+Object.ke
 drawCats(); refresh();
 async function start(){ try{ await mapInit(); }catch(e){ $('map').innerHTML='<div class="muted" style="padding:40px;text-align:center">地図を読み込めませんでした</div>'; } load(); }
 (async()=>{
+  if(DEMO){ $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+    document.querySelector('header h1').innerHTML='電話受付シート <span style="background:#e8743b;border-radius:6px;padding:2px 8px;font-size:12px">練習モード（架空データ・保存されません）</span>';
+    start(); return; }
   const saved=store.get('cowcow_staff_code');
   if(saved && await tryLogin(saved,true)) start();
   else $('login').classList.remove('hidden');

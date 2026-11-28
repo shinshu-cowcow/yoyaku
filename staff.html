@@ -138,11 +138,11 @@
     <h2>お客様</h2>
     <div class="row" style="margin-top:0"><label for="fRecv">電話を受けた人（受付者）<span class="req">必須</span></label><select id="fRecv"></select></div>
     <div class="two">
-      <div class="row"><label for="fName">お名前<span class="req">必須</span></label><input id="fName"></div>
-      <div class="row"><label for="fKana">フリガナ</label><input id="fKana"></div>
+      <div class="row"><label for="fKana">お名前（カタカナ）<span class="req">必須</span></label><input id="fKana" placeholder="例）ヤマダ タロウ"></div>
+      <div class="row"><label for="fName">お名前（漢字）</label><input id="fName" placeholder="例）山田 太郎"></div>
     </div>
     <div class="row"><label for="fTel">電話番号<span class="req">必須</span></label><input id="fTel" type="tel" inputmode="tel"></div>
-    <div class="row"><span class="lbl">確定のご連絡</span>
+    <div class="row hidden"><span class="lbl">確定のご連絡</span>
       <div class="opts radio" id="fPref"><button type="button" class="on">電話で伝えた</button><button type="button">メールで送る</button></div>
       <div class="row hidden" id="fEmailRow"><label for="fEmail">メールアドレス<span class="req">必須</span></label><input id="fEmail" type="email"></div>
     </div>
@@ -152,9 +152,10 @@
     <h2>ご依頼の内容</h2>
     <div class="row"><span class="lbl">ご依頼のきっかけ（当てはまれば押す）</span>
       <div class="opts check" id="fPurpose"><button type="button">引越し</button><button type="button">片付け・遺品整理</button></div></div>
-    <div class="row"><span class="lbl">品目（当てはまるものを全部押す）</span><div class="opts check" id="fCats"></div>
+    <div class="row"><span class="lbl">家電（当てはまるものを押す）</span><div class="opts check" id="fCats"></div>
       <div id="fAppl"></div></div>
     <div class="row hidden" id="fAirconRow"><label for="fAircon">エアコンの取り外し・設置場所</label><input id="fAircon" placeholder="例）取り外し必要／室内機2階・室外機2階ベランダ（壁付けは取り外し不可）"></div>
+    <div class="row"><label for="fOther">そのほかの品目</label><input id="fOther" placeholder="例）カメラ、骨董品、工具、除雪機、家具 など"></div>
     <div class="row"><label for="fItems">商品名・型番</label><input id="fItems" placeholder="例）ドラム式洗濯機 NA-VX800、キヤノン EOS 5D"></div>
     <div class="row"><label for="fState">状態</label><textarea id="fState" placeholder="例）動作OK、扉に小キズ／箱・説明書あり"></textarea></div>
     <div class="row"><span class="lbl">期日</span>
@@ -256,8 +257,9 @@ const AREAS = {
   '東信': ['上田市','小諸市','佐久市','東御市','小海町','佐久穂町','川上村','南牧村','南相木村','北相木村','軽井沢町','御代田町','立科町','長和町','青木村'],
   '中信': ['松本市','塩尻市','安曇野市','大町市','麻績村','生坂村','山形村','朝日村','筑北村','池田町','松川村','白馬村','小谷村','木曽町','上松町','南木曽町','木祖村','王滝村','大桑村'],
 };
-const CATS=['冷蔵庫','洗濯機','テレビ','エアコン','その他家電','カメラ','オーディオ','貴金属・時計','ゲーム','骨董品','刀剣','除雪機','工具','家具','その他（家の中のもの）'];
-const APPLIANCES=['冷蔵庫','洗濯機','テレビ','エアコン','その他家電'];
+const CATS=['冷蔵庫','洗濯機','テレビ','エアコン'];
+const RECEIVERS=['清水','白澤','土屋','畠山','斎藤','宮澤','亀山','太田'];
+const APPLIANCES=['冷蔵庫','洗濯機','テレビ','エアコン'];
 const MAKERS=['パナソニック','日立','東芝','シャープ','三菱','ソニー','AQUA','ハイセンス','アイリスオーヤマ','ニトリ','LG','ハイアール','TCL','ダイキン','富士通ゼネラル','コロナ','その他','不明'];
 const WD=['日','月','火','水','木','金','土'];
 const $=id=>document.getElementById(id);
@@ -317,7 +319,7 @@ function demoApi(body){
 }
 
 const S={pref:'電話で伝えた',purpose:[],cats:[],appl:{},due:'',pick:'',crew:'',house:'',elev:'',maiso:false,date:'',start:null,month:'',holdId:''};
-const FIELDS=['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr','fCity','fFloor'];
+const FIELDS=['fOther','fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr','fCity','fFloor'];
 
 async function api(body){
   if(DEMO) return JSON.parse(JSON.stringify(demoApi(body)));
@@ -371,7 +373,9 @@ function drawCats(){
 }
 $('fCats').onclick=e=>{const b=e.target.closest('button');if(!b)return;const c=b.textContent;S.cats=S.cats.includes(c)?S.cats.filter(x=>x!==c):S.cats.concat(c);drawCats();refresh();};
 $('fAppl').onchange=e=>{const s=e.target.closest('select');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;refresh();};
-['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',refresh));
+['fName','fKana','fTel','fEmail','fItems','fOther','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',refresh));
+// フリガナはひらがなで入れてもカタカナに直す
+$('fKana').addEventListener('blur',()=>{ $('fKana').value=$('fKana').value.replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60)); refresh(); });
 
 /* ---------- 地図 ---------- */
 const MAP={kind:'',m:null,markers:[],home:null,popup:null};
@@ -471,7 +475,7 @@ async function load(){
     if(!r.ok){ if(r.error==='bad_code'||r.error==='no_passcode'){store.del('cowcow_staff_code');location.reload();return;} throw new Error(r.message||r.error); }
     DATA=r;
     $('holdCount').textContent=(r.holds||[]).length;
-    { const cur=$('fRecv').value||store.get('cowcow_receiver')||''; $('fRecv').innerHTML='<option value="">選んでください</option>'+r.staff.map(s=>`<option${s.name===cur?' selected':''}>${esc(s.name)}</option>`).join('')+'<option'+(cur==='その他'?' selected':'')+'>その他</option>'; }
+    { const cur=$('fRecv').value||store.get('cowcow_receiver')||''; const rl=[...new Set(RECEIVERS.concat(r.staff.map(s=>s.name)))]; $('fRecv').innerHTML='<option value="">選んでください</option>'+rl.map(n=>`<option${n===cur?' selected':''}>${esc(n)}</option>`).join('')+'<option'+(cur==='その他'?' selected':'')+'>その他</option>'; }
     if($('fCity').value && !r.center) toast('場所が見つかりませんでした。住所を見直してください');
     if(S.date && !cand(S.date)){ toast(fmtDate(S.date)+' は空きがなくなりました'); S.date=''; S.start=null; }
     drawLegend(); drawPins(); drawDate(); refresh();
@@ -547,6 +551,7 @@ $('fStaff').onchange=()=>{$('fStaff').dataset.v=$('fStaff').value;refresh();};
 
 /* ---------- 下の帯・登録 ---------- */
 function v(id){return $(id).value.trim();}
+function toKata(s){return String(s||'').replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));}
 // 確認ダイアログ（ブラウザ標準の確認窓はアプリ内ブラウザ等で出ないことがあるため、画面内に表示）
 function ask(msg,yes){ return new Promise(res=>{ $('askText').textContent=msg; $('askYes').textContent=yes||'OK'; $('askModal').classList.remove('hidden');
   const done=v=>{ $('askModal').classList.add('hidden'); $('askYes').onclick=$('askNo').onclick=null; res(v); };
@@ -562,20 +567,20 @@ function buildPayload(){
   const cond=[S.purpose.length?'きっかけ：'+S.purpose.join('・'):'', due, pick].filter(Boolean).join('\n');
   const house = S.house==='アパート・マンション' ? ['アパート・マンション',v('fFloor'),S.maiso?'メゾネット':'',S.elev?'エレベーター'+S.elev:''].filter(Boolean).join('・') : S.house;
   const building=[house, v('fBuilding')].filter(Boolean).join('／');
-  return {action:'staff_book',date:S.date,start:S.start,slotLabel:slot?slot.label:'',staff:v('fStaff'),name:v('fName'),kana:v('fKana'),tel:v('fTel'),
+  return {action:'staff_book',date:S.date,start:S.start,slotLabel:slot?slot.label:'',staff:v('fStaff'),name:v('fName')||toKata(v('fKana')),kana:toKata(v('fKana')),tel:v('fTel'),
     city:v('fCity'),region:Object.keys(AREAS).find(r=>AREAS[r].includes(v('fCity')))||'',address:v('fAddr'),building,
-    requestType:requestType(),items:S.cats.join('、'),detail,condition:cond,large:v('fLarge'),request:v('fRequest'),
+    requestType:requestType(),items:S.cats.concat(v('fOther')?[v('fOther')]:[]).join('、'),detail,condition:cond,large:v('fLarge'),request:v('fRequest'),
     contactPref:S.pref==='メールで送る'?'メール':'電話',email:v('fEmail'),memo:v('fMemo'),receiver:v('fRecv'),holdId:S.holdId||''};
 }
 function refresh(){
   const p=buildPayload();
-  const miss=[]; if(!p.name)miss.push('お名前'); if(!p.tel)miss.push('電話番号'); if(!p.city)miss.push('市町村'); if(!p.date)miss.push('日付'); else if(p.start==null)miss.push('時間枠'); if(!p.staff)miss.push('担当者'); if(p.contactPref==='メール'&&!p.email)miss.push('メール'); if(!p.receiver)miss.push('受付者');
+  const miss=[]; if(!p.kana)miss.push('お名前（カタカナ）'); if(!p.tel)miss.push('電話番号'); if(!p.city)miss.push('市町村'); if(!p.date)miss.push('日付'); else if(p.start==null)miss.push('時間枠'); if(!p.staff)miss.push('担当者'); if(p.contactPref==='メール'&&!p.email)miss.push('メール'); if(!p.receiver)miss.push('受付者');
   const parts=[p.city?esc(p.city+' '+p.address):'', p.date?fmtDate(p.date)+(p.slotLabel?' '+esc(p.slotLabel):''):'', p.staff?esc(p.staff):'', p.name?esc(p.name)+' 様':'', p.items?esc(p.items):''].filter(Boolean);
   $('sum').innerHTML=(parts.join('｜')||'<span class="muted">どこから入れても大丈夫です</span>')+(miss.length?`<br><span class="miss">あと：${miss.join('・')}</span>`:'<br><span style="color:var(--ok);font-weight:700">登録できます</span>');
   $('submitBtn').disabled=!!miss.length;
   $('holdBtn').disabled=!p.tel;
   const set=(id,ok)=>{$(id).className='ck'+(ok?' done':'');$(id).textContent=ok?'✓':'!';};
-  set('ckForm',p.name&&p.tel&&p.receiver); set('ckMap',!!p.city); set('ckDate',p.date&&p.start!=null&&p.staff);
+  set('ckForm',p.kana&&p.tel&&p.receiver); set('ckMap',!!p.city); set('ckDate',p.date&&p.start!=null&&p.staff);
 }
 $('submitBtn').onclick=async()=>{
   const p=buildPayload();
@@ -590,7 +595,7 @@ $('submitBtn').onclick=async()=>{
   finally{ $('submitBtn').textContent='登録'; refresh(); }
 };
 function clearAll(){
-  ['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr'].forEach(id=>$(id).value='');
+  ['fName','fKana','fTel','fEmail','fItems','fOther','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr'].forEach(id=>$(id).value='');
   $('fCity').value=''; $('fFloor').value=''; $('fStaff').dataset.v='';
   Object.assign(S,{pref:'電話で伝えた',purpose:[],cats:[],appl:{},due:'',pick:'',crew:'',house:'',elev:'',maiso:false,date:'',start:null,holdId:''});
   $('resumeBar').classList.add('hidden');

@@ -41,7 +41,10 @@
   .opts button.on{background:#fff1e8;border-color:var(--accent);color:#b4501e;font-weight:700}
   .opts.check button.on::before{content:'✓ '}
   .opts.radio button.on{background:var(--main);border-color:var(--main);color:#fff}
-  .appl{display:grid;grid-template-columns:5.5em 1fr 1fr;gap:6px;align-items:center;margin-top:6px;font-size:14px}
+  .appl2{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+  .appl2 .hd{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .appl2 .opts button{padding:5px 14px}
+  .appl2 select{padding:7px 6px;font-size:15px}
   .appl select{padding:7px 6px;font-size:15px}
   .btn{border:none;border-radius:8px;padding:10px 16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
   .btn.primary{background:var(--accent);color:#fff}
@@ -154,7 +157,7 @@
       <div class="opts check" id="fPurpose"><button type="button">引越し</button><button type="button">片付け・遺品整理</button></div></div>
     <div class="row"><span class="lbl">家電（当てはまるものを押す）</span><div class="opts check" id="fCats"></div>
       <div id="fAppl"></div></div>
-    <div class="row hidden" id="fAirconRow"><label for="fAircon">エアコンの取り外し・設置場所</label><input id="fAircon" placeholder="例）取り外し必要／室内機2階・室外機2階ベランダ（壁付けは取り外し不可）"></div>
+    <div class="row hidden" id="fAirconRow"><label for="fAircon">エアコンの内容（メーカー・年式・台数・取り外し・設置場所など）</label><textarea id="fAircon" placeholder="例）ダイキン 2018年製 1台／取り外し必要／室内機2階・室外機2階ベランダ（壁付けは取り外し不可）"></textarea></div>
     <div class="row"><label for="fOther">そのほかの品目</label><input id="fOther" placeholder="例）カメラ、骨董品、工具、除雪機、家具 など"></div>
     <div class="row"><label for="fItems">商品名・型番</label><input id="fItems" placeholder="例）ドラム式洗濯機 NA-VX800、キヤノン EOS 5D"></div>
     <div class="row"><label for="fState">状態</label><textarea id="fState" placeholder="例）動作OK、扉に小キズ／箱・説明書あり"></textarea></div>
@@ -259,8 +262,9 @@ const AREAS = {
 };
 const CATS=['冷蔵庫','洗濯機','テレビ','エアコン'];
 const RECEIVERS=['清水','白澤','土屋','畠山','斎藤','宮澤','亀山','太田'];
-const APPLIANCES=['冷蔵庫','洗濯機','テレビ','エアコン'];
-const MAKERS=['パナソニック','日立','東芝','シャープ','三菱','ソニー','AQUA','ハイセンス','アイリスオーヤマ','ニトリ','LG','ハイアール','TCL','ダイキン','富士通ゼネラル','コロナ','その他','不明'];
+const APPLIANCES=['冷蔵庫','洗濯機','テレビ'];
+const MAKERS_DOMESTIC=['パナソニック','日立','シャープ','三菱','ソニー','ニトリ','ヤマダ','アクア'];
+const MAKERS_OVERSEAS=['ハイセンス','ハイアール'];
 const WD=['日','月','火','水','木','金','土'];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -367,12 +371,23 @@ const years=(()=>{const y=new Date().getFullYear();const a=[];for(let i=y;i>=y-2
 function drawCats(){
   $('fCats').innerHTML=CATS.map(c=>`<button type="button" class="${S.cats.includes(c)?'on':''}">${c}</button>`).join('');
   const ap=S.cats.filter(c=>APPLIANCES.includes(c));
-  $('fAppl').innerHTML = ap.length ? '<div class="muted" style="margin-top:8px">家電のメーカーと製造年（分かれば）</div>'+ap.map(c=>{const a=S.appl[c]||{};
-    return `<div class="appl"><b>${c}</b><select data-c="${c}" data-k="maker"><option value="">メーカー</option>${MAKERS.map(m=>`<option${a.maker===m?' selected':''}>${m}</option>`).join('')}</select><select data-c="${c}" data-k="year"><option value="">製造年</option>${years.map(m=>`<option${a.year===m?' selected':''}>${m}</option>`).join('')}</select></div>`;}).join('') : '';
+  $('fAppl').innerHTML = ap.map(c=>{const a=S.appl[c]||{};
+    const list=a.origin==='海外'?MAKERS_OVERSEAS:a.origin==='国内'?MAKERS_DOMESTIC:[];
+    return `<div class="appl2"><div class="hd"><b>${c}</b>
+      <div class="opts radio" data-c="${c}" data-k="origin"><button type="button" class="${a.origin==='国内'?'on':''}">国内</button><button type="button" class="${a.origin==='海外'?'on':''}">海外</button></div></div>
+      <div class="two">
+        <select data-c="${c}" data-k="maker"${list.length?'':' disabled'}><option value="">${list.length?'メーカー':'先に国内／海外'}</option>${list.concat(['その他（記入）','不明']).map(m=>`<option${a.maker===m?' selected':''}>${m}</option>`).join('')}</select>
+        <select data-c="${c}" data-k="year"><option value="">製造年</option>${years.map(m=>`<option${a.year===m?' selected':''}>${m}</option>`).join('')}</select>
+      </div>
+      <input data-c="${c}" data-k="makerText" class="${a.maker==='その他（記入）'?'':'hidden'}" placeholder="メーカー名を記入" value="${esc(a.makerText||'')}" style="margin-top:6px">
+      ${c==='洗濯機'?`<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><input data-c="${c}" data-k="kg" type="number" inputmode="decimal" min="0" step="0.5" placeholder="容量" value="${esc(a.kg||'')}" style="width:7em"><span>kg</span></div>`:''}
+    </div>`;}).join('');
   $('fAirconRow').classList.toggle('hidden',!S.cats.includes('エアコン'));
 }
 $('fCats').onclick=e=>{const b=e.target.closest('button');if(!b)return;const c=b.textContent;S.cats=S.cats.includes(c)?S.cats.filter(x=>x!==c):S.cats.concat(c);drawCats();refresh();};
-$('fAppl').onchange=e=>{const s=e.target.closest('select');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;refresh();};
+$('fAppl').onclick=e=>{const b=e.target.closest('[data-k="origin"] button');if(!b)return;const c=b.parentElement.dataset.c;const a=S.appl[c]=S.appl[c]||{};const v=b.textContent;a.origin=a.origin===v?'':v;a.maker='';drawCats();refresh();};
+$('fAppl').onchange=e=>{const s=e.target.closest('select');if(!s)return;const a=S.appl[s.dataset.c]=S.appl[s.dataset.c]||{};a[s.dataset.k]=s.value;if(s.dataset.k==='maker')drawCats();refresh();};
+$('fAppl').oninput=e=>{const s=e.target.closest('input');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;refresh();};
 ['fName','fKana','fTel','fEmail','fItems','fOther','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',refresh));
 // フリガナはひらがなで入れてもカタカナに直す
 $('fKana').addEventListener('blur',()=>{ $('fKana').value=$('fKana').value.replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60)); refresh(); });
@@ -560,7 +575,7 @@ function requestType(){ return S.purpose.includes('引越し')?'引っ越しに�
 function buildPayload(){
   const c=S.date?cand(S.date):null;
   const slot=c&&S.start!=null?c.slots.find(s=>s.start===S.start):null;
-  const appl=S.cats.filter(x=>APPLIANCES.includes(x)).map(x=>{const a=S.appl[x]||{};const t=[a.maker,a.year?a.year+'製':''].filter(Boolean).join(' ');return t?`${x}：${t}`:'';}).filter(Boolean);
+  const appl=S.cats.filter(x=>APPLIANCES.includes(x)).map(x=>{const a=S.appl[x]||{};const mk=a.maker==='その他（記入）'?(a.makerText||'その他'):a.maker;const t=[a.origin?a.origin+'メーカー':'',mk,a.year?a.year+'製':'',(x==='洗濯機'&&a.kg)?a.kg+'kg':''].filter(Boolean).join(' ');return t?`${x}：${t}`:'';}).filter(Boolean);
   const detail=[...appl, v('fItems')?'商品：'+v('fItems'):'', v('fState')?'状態：'+v('fState'):'', (S.cats.includes('エアコン')&&v('fAircon'))?'エアコン：'+v('fAircon'):''].filter(Boolean).join('\n');
   const due = S.due==='あり' ? ('期日：'+(v('fDueDate')?fmtDate(v('fDueDate'))+'まで':'あり（日付未定）')) : S.due==='なし' ? '期日：なし' : '';
   const pick = S.pick ? '回収：'+S.pick+(S.crew?'（'+S.crew+'）':'') : '';

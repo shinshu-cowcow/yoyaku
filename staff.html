@@ -79,6 +79,11 @@
   .slots button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 2px;font-size:13px;cursor:pointer;font-family:inherit}
   .slots button.on{background:var(--main);color:#fff;border-color:var(--main)}
   .slots button:disabled{color:#bbb;background:#f3f3f3;text-decoration:line-through;cursor:not-allowed}
+  .slots button.maybe{background:#fff8d6;border:1px dashed #d4a017;color:#7a5a00}
+  .slots button.maybe.on{background:#d4a017;color:#fff;border-style:solid}
+  .cd.maybe{background:#fff8d6;border-color:#d4a017}
+  .cd.maybe small{color:#7a5a00;font-weight:700}
+  .warnbox{background:#fff8d6;border:1px solid #d4a017;border-radius:8px;padding:8px;margin-top:8px;font-size:14px;color:#5c4300}
   .dayinfo{font-size:13px;background:#f6f8fa;border-radius:8px;padding:8px;margin-top:8px;line-height:1.6}
   .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 8px rgba(0,0,0,.06);padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:1000}
   .bar .in{max-width:1400px;margin:0 auto;display:flex;gap:10px;align-items:center}
@@ -204,6 +209,7 @@
     <div class="cal" id="cal"></div>
     <div id="dayBox" class="hidden">
       <div class="row"><span class="lbl" id="dayTitle">時間枠</span><div class="slots" id="slots"></div></div>
+      <div class="warnbox hidden" id="maybeWarn"></div>
       <div class="dayinfo" id="dayInfo"></div>
       <div class="row"><label for="fStaff">担当者<span class="req">必須</span></label><select id="fStaff"></select><div class="muted" id="staffNote"></div></div>
       <div class="row hidden" id="staff2Row"><label for="fStaff2">2人目の担当者（当日回収・2人必要）<span class="req">必須</span></label><select id="fStaff2"></select><div class="muted">カレンダーには2人とも同じ内容で入ります。2人分の空きがある時間枠だけ選べます。</div></div>
@@ -532,12 +538,12 @@ function drawDate(){
       const ymd=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, w=(fd+d-1)%7, c=idx[ymd];
       const wc=w===0?' sun':w===6?' sat':'';
       if(!c){ cells+=`<div class="cd off${wc}"><span>${d}</span><small>－</small></div>`; continue; }
-      const free=c.slots.filter(s=>s.available).length;
-      cells+=`<div class="cd${wc}${c.isNear?' near':''}${S.date===ymd?' sel':''}" data-d="${ymd}"><span>${d}</span><small>${c.isNear?'◎':''}空${free}${c.count?'・'+c.count+'件':''}</small></div>`;
+      const free=c.slots.filter(s=>s.available).length; const mb=!free&&c.slots.some(s=>s.maybe);
+      cells+=`<div class="cd${wc}${c.isNear&&free?' near':''}${mb?' maybe':''}${S.date===ymd?' sel':''}" data-d="${ymd}"><span>${d}</span><small>${mb?'△要確認':(c.isNear?'◎':'')+'空'+free}${c.count?'・'+c.count+'件':''}</small></div>`;
     }
     $('cal').innerHTML=`<div class="mhd"><button type="button" data-m="-1"${mi<=0?' disabled':''}>◀</button><b>${y}年${m}月</b><button type="button" data-m="1"${mi>=months.length-1?' disabled':''}>▶</button></div>
       <div class="wk">${WD.map(x=>`<div>${x}</div>`).join('')}</div><div class="days">${cells}</div>
-      <div class="muted" style="margin-top:4px">「空3」＝空いている時間枠の数、「2件」＝その日の予定の数</div>`;
+      <div class="muted" style="margin-top:4px">「空3」＝空いている時間枠の数、「2件」＝その日の予定の数、「△要確認」＝査定員欄にない人が出られれば受けられる日</div>`;
     $('cal').dataset.months=months.join(',');
   }
   const c=S.date&&cand(S.date);
@@ -546,12 +552,16 @@ function drawDate(){
   $('dayTitle').textContent=`${fmtDate(S.date)} の時間枠`;
   const n2=need2();
   if(n2 && S.start!=null){ const cs=c.slots.find(s=>s.start===S.start); if(cs && (cs.free==null?1:cs.free)<2) S.start=null; }
-  $('slots').innerHTML=c.slots.map(s=>{const ok=s.available&&(!n2||(s.free==null?1:s.free)>=2);return `<button type="button" data-s="${s.start}" class="${S.start===s.start?'on':''}" ${ok?'':'disabled'}>${esc(s.label)}</button>`;}).join('');
+  $('slots').innerHTML=c.slots.map(s=>{const ok=s.available&&(!n2||(s.free==null?1:s.free)>=2);const mb=!ok&&!n2&&s.maybe;return `<button type="button" data-s="${s.start}" class="${S.start===s.start?'on':''}${mb?' maybe':''}" ${ok||mb?'':'disabled'}>${esc(s.label)}${mb?'<br><small>△要確認</small>':''}</button>`;}).join('');
+  const selSlot=S.start!=null&&c.slots.find(s=>s.start===S.start);
+  const staffLine=(c.workers?'<b>この日の査定員</b>：'+(c.workers.length?c.workers.map(esc).join('・'):'なし')+(c.off&&c.off.length?'　<span style="color:#c0392b">休み：'+c.off.map(esc).join('・')+'</span>':'')+(c.extras&&c.extras.length?'　<span style="color:#7a5a00">要確認：'+c.extras.map(esc).join('・')+'</span>':'')+'<br>':'');
+  $('maybeWarn').innerHTML = selSlot&&!selSlot.available&&selSlot.maybe ? `△ 要確認の時間枠です。査定員欄に名前のない <b>${(selSlot.maybeBy||[]).map(esc).join('・')}</b> さんが出られるか確認してから登録してください。` : '';
+  $('maybeWarn').classList.toggle('hidden',!$('maybeWarn').innerHTML);
   const todays=DATA.points.filter(p=>p.date===S.date).sort((a,b)=>(a.start||0)-(b.start||0));
-  $('dayInfo').innerHTML = todays.length ? '<b>この日の予定</b><br>'+todays.map(p=>{
+  $('dayInfo').innerHTML = staffLine + (todays.length ? '<b>この日の予定</b><br>'+todays.map(p=>{
       const km=DATA.center?Math.round(dist(DATA.center,p)*10)/10:null;
       return `${esc(p.slot)}　<span style="color:${p.color};font-weight:700">${esc(p.staff||'未定')}${p.staff2?'・'+esc(p.staff2):''}</span>　${esc(p.city)}${km!=null?`（${km}km）`:''}${p.tentative?'　<span class="muted">仮</span>':''}`;}).join('<br>')
-    : 'この日はまだ予定がありません';
+    : 'この日はまだ予定がありません');
   const rec=$('fStaff').dataset.v || (c.near[0]&&c.near[0].staff) || '';
   const busyAt=DATA.points.filter(p=>p.date===S.date&&!p.tentative&&p.start===S.start).map(p=>p.staff);
   $('fStaff').innerHTML='<option value="">選んでください</option>'+DATA.staff.map(s=>`<option value="${esc(s.name)}"${s.name===rec?' selected':''}>${esc(s.name)}${busyAt.includes(s.name)?'（この枠に予定あり）':''}${c.staffOnDay.includes(s.name)?'（この日出張あり）':''}</option>`).join('');
@@ -590,7 +600,7 @@ function buildPayload(){
   const cond=[S.purpose.length?'きっかけ：'+S.purpose.join('・'):'', due, pick].filter(Boolean).join('\n');
   const house = S.house==='アパート・マンション' ? ['アパート・マンション',v('fFloor'),S.maiso?'メゾネット':'',S.elev?'エレベーター'+S.elev:''].filter(Boolean).join('・') : S.house;
   const building=[house, v('fBuilding')].filter(Boolean).join('／');
-  return {action:'staff_book',date:S.date,start:S.start,slotLabel:slot?slot.label:'',staff:v('fStaff'),staff2:need2()?v('fStaff2'):'',name:v('fName')||toKata(v('fKana')),kana:toKata(v('fKana')),tel:v('fTel'),
+  return {action:'staff_book',confirmMaybe:!!(slot&&!slot.available&&slot.maybe),date:S.date,start:S.start,slotLabel:slot?slot.label:'',staff:v('fStaff'),staff2:need2()?v('fStaff2'):'',name:v('fName')||toKata(v('fKana')),kana:toKata(v('fKana')),tel:v('fTel'),
     city:v('fCity'),region:Object.keys(AREAS).find(r=>AREAS[r].includes(v('fCity')))||'',address:v('fAddr'),building,
     requestType:requestType(),items:S.cats.concat(v('fOther')?[v('fOther')]:[]).join('、'),detail,condition:cond,large:v('fLarge'),request:v('fRequest'),
     contactPref:S.pref==='メールで送る'?'メール':'電話',email:v('fEmail'),memo:v('fMemo'),receiver:v('fRecv'),holdId:S.holdId||''};
@@ -607,7 +617,7 @@ function refresh(){
 }
 $('submitBtn').onclick=async()=>{
   const p=buildPayload();
-  if(!(await ask(`${fmtDate(p.date)} ${p.slotLabel}　担当：${p.staff}${p.staff2?'・'+p.staff2+'（2人）':''}\n${p.name} 様（${p.city}）\nこの内容で登録しますか？`,'登録する'))) return;
+  if(!(await ask(`${p.confirmMaybe?'【△要確認の枠】査定員に確認済みですか？\n':''}${fmtDate(p.date)} ${p.slotLabel}　担当：${p.staff}${p.staff2?'・'+p.staff2+'（2人）':''}\n${p.name} 様（${p.city}）\nこの内容で登録しますか？`,'登録する'))) return;
   $('submitBtn').disabled=true; $('submitBtn').textContent='登録中…';
   try{
     const r=await api(p);

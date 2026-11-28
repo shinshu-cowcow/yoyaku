@@ -229,6 +229,11 @@
   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;background:#eef1f4" id="holdCancel">やめる</button><button class="btn primary" style="flex:1" id="holdSave">保留で保存</button></div>
 </div></div>
 
+<div class="modal hidden" id="askModal" style="z-index:2500"><div class="sheet" style="max-width:420px">
+  <div id="askText" style="white-space:pre-wrap;font-size:16px;line-height:1.6"></div>
+  <div style="display:flex;gap:8px;margin-top:16px"><button class="btn" style="flex:1;background:#eef1f4" id="askNo">戻る</button><button class="btn primary" style="flex:1" id="askYes">OK</button></div>
+</div></div>
+
 <div class="modal hidden" id="doneModal"><div class="sheet">
   <h3>お客様への確認事項 <span class="muted" id="doneId"></span></h3>
   <div class="talk" id="doneTalk"></div>
@@ -542,6 +547,10 @@ $('fStaff').onchange=()=>{$('fStaff').dataset.v=$('fStaff').value;refresh();};
 
 /* ---------- 下の帯・登録 ---------- */
 function v(id){return $(id).value.trim();}
+// 確認ダイアログ（ブラウザ標準の確認窓はアプリ内ブラウザ等で出ないことがあるため、画面内に表示）
+function ask(msg,yes){ return new Promise(res=>{ $('askText').textContent=msg; $('askYes').textContent=yes||'OK'; $('askModal').classList.remove('hidden');
+  const done=v=>{ $('askModal').classList.add('hidden'); $('askYes').onclick=$('askNo').onclick=null; res(v); };
+  $('askYes').onclick=()=>done(true); $('askNo').onclick=()=>done(false); }); }
 function requestType(){ return S.purpose.includes('引越し')?'引っ越しに伴う買取':S.purpose.includes('片付け・遺品整理')?'片付け・遺品整理':'売りたいものがある'; }
 function buildPayload(){
   const c=S.date?cand(S.date):null;
@@ -570,7 +579,7 @@ function refresh(){
 }
 $('submitBtn').onclick=async()=>{
   const p=buildPayload();
-  if(!confirm(`${fmtDate(p.date)} ${p.slotLabel}　担当：${p.staff}\n${p.name} 様（${p.city}）\nこの内容で登録しますか？`)) return;
+  if(!(await ask(`${fmtDate(p.date)} ${p.slotLabel}　担当：${p.staff}\n${p.name} 様（${p.city}）\nこの内容で登録しますか？`,'登録する'))) return;
   $('submitBtn').disabled=true; $('submitBtn').textContent='登録中…';
   try{
     const r=await api(p);
@@ -589,7 +598,7 @@ function clearAll(){
   ['fEmailRow','fDueSub','fCrewSub','fAptSub'].forEach(id=>$(id).classList.add('hidden'));
   drawCats(); refresh(); showPane('paneForm');
 }
-$('clearBtn').onclick=()=>{ if(confirm('入力した内容を消しますか？')){ clearAll(); load(); } };
+$('clearBtn').onclick=async()=>{ if(await ask('入力した内容を消しますか？','消す')){ clearAll(); load(); } };
 
 
 
@@ -633,7 +642,7 @@ function restore(snap,id,label){
   $('resumeBar').classList.remove('hidden');
   load();
 }
-$('resumeQuit').onclick=()=>{ if(confirm('再開をやめて入力を消しますか？（保留はそのまま残ります）')){ clearAll(); load(); } };
+$('resumeQuit').onclick=async()=>{ if(await ask('再開をやめて入力を消しますか？（保留はそのまま残ります）','やめる')){ clearAll(); load(); } };
 $('holdBtn').onclick=()=>{ $('holdErr').textContent=''; $('holdModal').classList.remove('hidden'); };
 $('holdCancel').onclick=()=>$('holdModal').classList.add('hidden');
 let cbQuick='';
@@ -668,7 +677,7 @@ $('holdsList').onclick=async e=>{
   if(rb){ const h=hs.find(x=>x.id===rb.dataset.resume); if(!h) return; $('holdsModal').classList.add('hidden');
     if(h.form) restore(h.form,h.id,(h.name||h.tel)+' 様');
     else { restore({S:{},f:{fName:h.name,fTel:h.tel,fCity:h.city}},h.id,(h.name||h.tel)+' 様'); } return; }
-  if(cb){ if(!confirm('この保留を取り消しますか？（予約一覧では「キャンセル」になります）')) return;
+  if(cb){ if(!(await ask('この保留を取り消しますか？（予約一覧では「キャンセル」になります）','取り消す'))) return;
     const r=await api({action:'staff_hold_cancel',holdId:cb.dataset.hcancel}); if(!r.ok){toast(r.message||'取り消せませんでした');return;}
     toast('保留を取り消しました'); await load(); drawHolds(); }
 };

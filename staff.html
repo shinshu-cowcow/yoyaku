@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>電話受付シート｜出張買取</title>
+<style>
+  :root{--main:#1f5f8b;--accent:#e8743b;--bg:#f4f6f8;--card:#fff;--text:#222;--sub:#666;--line:#dde2e7;--ok:#2e8b57;--ng:#c0392b;--near:#e07800}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%;padding-bottom:120px}
+  header{background:var(--main);color:#fff;padding:9px 12px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:900}
+  header h1{margin:0;font-size:16px;flex:1}
+  header button{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:6px 9px;font-size:13px;cursor:pointer;font-family:inherit}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:42px;z-index:800}
+  .tabs button{flex:1;border:none;background:none;padding:11px 4px;font-size:15px;font-weight:700;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;font-family:inherit}
+  .tabs button.on{color:var(--main);border-bottom-color:var(--main)}
+  .tabs .ck{display:inline-block;width:18px;height:18px;border-radius:50%;background:#ddd;color:#fff;font-size:12px;line-height:18px;margin-left:4px;vertical-align:1px}
+  .tabs .ck.done{background:var(--ok)}
+  .wrap{max-width:1400px;margin:0 auto;padding:10px}
+  .grid{display:block}
+  .pane{display:none}
+  .pane.on{display:block}
+  @media(min-width:1000px){
+    .tabs{display:none}
+    .grid{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:10px;align-items:start}
+    .pane{display:block!important}
+    #paneMap .card{position:sticky;top:52px}
+  }
+  .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:10px}
+  .card h2{font-size:15px;margin:0 0 8px;color:var(--main)}
+  select,input,textarea{width:100%;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit}
+  textarea{min-height:58px;resize:vertical}
+  .row{margin-top:10px}
+  .row>label,.lbl{font-size:13px;font-weight:700;display:block;margin-bottom:4px}
+  .req{background:var(--accent);color:#fff;font-size:10px;border-radius:4px;padding:1px 5px;margin-left:5px;font-weight:400;vertical-align:1px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .sub{margin:8px 0 0 10px;padding-left:10px;border-left:3px solid #f3c7ab}
+  .opts{display:flex;flex-wrap:wrap;gap:6px}
+  .opts button{border:1px solid var(--line);background:#fff;border-radius:18px;padding:7px 12px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--text)}
+  .opts button.on{background:#fff1e8;border-color:var(--accent);color:#b4501e;font-weight:700}
+  .opts.check button.on::before{content:'✓ '}
+  .opts.radio button.on{background:var(--main);border-color:var(--main);color:#fff}
+  .appl{display:grid;grid-template-columns:5.5em 1fr 1fr;gap:6px;align-items:center;margin-top:6px;font-size:14px}
+  .appl select{padding:7px 6px;font-size:15px}
+  .btn{border:none;border-radius:8px;padding:10px 16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .muted{color:var(--sub);font-size:13px}
+  .hidden{display:none!important}
+  .err{color:var(--ng);font-size:13px;margin-top:6px}
+  #map{width:100%;height:42vh;min-height:280px;border-radius:10px;background:#dfe6ec}
+  @media(min-width:1000px){#map{height:calc(100vh - 300px)}}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--sub);margin-top:6px}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+  .pinpop{font-size:13px;line-height:1.5;max-width:240px}
+  .pinpop .btn{padding:7px 10px;font-size:13px;margin-top:6px;width:100%}
+  .rec{border:1px solid #f0a040;background:#fff8ec;border-radius:10px;padding:8px 10px;margin-bottom:6px;cursor:pointer;font-size:14px}
+  .rec b{font-size:15px}
+  .rec.sel{outline:3px solid var(--main)}
+  .cal .mhd{display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px}
+  .cal .mhd button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer}
+  .cal .wk,.cal .days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+  .cal .wk div{font-size:12px;color:var(--sub)}
+  .cd{border:1px solid var(--line);border-radius:7px;padding:3px 0;min-height:46px;cursor:pointer;background:#fff}
+  .cd span{display:block;font-size:14px;font-weight:700}
+  .cd small{display:block;font-size:11px;color:var(--ok);line-height:1.2}
+  .cd.sun span{color:var(--ng)} .cd.sat span{color:#1e6fd9}
+  .cd.off{background:#f2f2f2;cursor:not-allowed}
+  .cd.off span,.cd.off small{color:#bbb}
+  .cd.blank{border-color:transparent;background:none;cursor:default}
+  .cd.near{background:#fff4e0;border-color:#f0a040}
+  .cd.near small{color:var(--near);font-weight:700}
+  .cd.sel{outline:3px solid var(--main);outline-offset:-1px}
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .slots button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 2px;font-size:13px;cursor:pointer;font-family:inherit}
+  .slots button.on{background:var(--main);color:#fff;border-color:var(--main)}
+  .slots button:disabled{color:#bbb;background:#f3f3f3;text-decoration:line-through;cursor:not-allowed}
+  .dayinfo{font-size:13px;background:#f6f8fa;border-radius:8px;padding:8px;margin-top:8px;line-height:1.6}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 8px rgba(0,0,0,.06);padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:1000}
+  .bar .in{max-width:1400px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  .bar .sum{flex:1;font-size:13px;line-height:1.5;min-width:0}
+  .bar .sum .miss{color:var(--ng)}
+  .bar .btn{padding:12px 18px;white-space:nowrap}
+  .bar .clr{background:none;border:none;color:var(--sub);font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit}
+  #login{max-width:360px;margin:12vh auto;padding:20px}
+  .btn.hold{background:#fff;color:#b4501e;border:2px solid var(--accent)}
+  header .holdBtn{background:#fde2c8;color:#8a3d10;font-weight:700}
+  .resume{background:#fff4e0;border:1px solid #f0a040;border-radius:10px;padding:8px 12px;margin:10px 10px 0;font-size:14px;display:flex;gap:8px;align-items:center}
+  .resume button{margin-left:auto;background:none;border:none;color:var(--sub);text-decoration:underline;cursor:pointer;font-family:inherit}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:2000}
+  @media(min-width:700px){.modal{align-items:center}}
+  .sheet{background:#fff;width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:14px 14px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
+  @media(min-width:700px){.sheet{border-radius:14px}}
+  .sheet h3{margin:0 0 8px;font-size:17px}
+  .hitem{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;font-size:14px;line-height:1.5}
+  .hitem .cb{color:#b4501e;font-weight:700}
+  .hitem .acts{display:flex;gap:6px;margin-top:6px}
+  .hitem .acts .btn{padding:7px 12px;font-size:13px}
+  #doneModal .sheet{max-width:640px}
+  .talk{font-size:17px;line-height:1.8}
+  .talk .when{background:#eaf2f8;border-radius:10px;padding:12px;text-align:center;margin:8px 0 12px}
+  .talk .when b{display:block;font-size:24px;color:var(--main)}
+  .talk p{margin:0 0 12px;padding:10px 12px;border-left:4px solid var(--accent);background:#fffaf6;border-radius:4px}
+  .talk .recap{font-size:14px;color:#444;background:#f6f8fa;border-radius:8px;padding:8px 12px;line-height:1.6}
+  .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:3000;max-width:90vw}
+</style>
+</head>
+<body>
+
+<div id="login" class="card hidden">
+  <h2 style="font-size:18px">電話受付シート（社員用）</h2>
+  <p class="muted">社員用のパスコードを入れてください。</p>
+  <input id="code" type="password" autocomplete="current-password" placeholder="パスコード">
+  <label class="muted" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="remember" checked style="width:auto"> この端末に覚えさせる</label>
+  <div class="err" id="loginErr"></div>
+  <button class="btn primary" id="loginBtn" style="width:100%;margin-top:10px">ひらく</button>
+</div>
+
+<div id="app" class="hidden">
+<header>
+  <h1>電話受付シート</h1>
+  <button id="holdListBtn" class="holdBtn">保留 <span id="holdCount">0</span></button>
+  <button id="reloadBtn">最新にする</button>
+  <button id="logoutBtn">ログアウト</button>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-p="paneForm" class="on">内容<span class="ck" id="ckForm">!</span></button>
+  <button data-p="paneMap">場所<span class="ck" id="ckMap">!</span></button>
+  <button data-p="paneDate">日時<span class="ck" id="ckDate">!</span></button>
+</nav>
+<div class="resume hidden" id="resumeBar"><span id="resumeText"></span><button id="resumeQuit">再開をやめる</button></div>
+
+<div class="wrap"><div class="grid">
+
+<section class="pane on" id="paneForm">
+  <div class="card">
+    <h2>お客様</h2>
+    <div class="row" style="margin-top:0"><label for="fRecv">電話を受けた人（受付者）<span class="req">必須</span></label><select id="fRecv"></select></div>
+    <div class="two">
+      <div class="row"><label for="fName">お名前<span class="req">必須</span></label><input id="fName"></div>
+      <div class="row"><label for="fKana">フリガナ</label><input id="fKana"></div>
+    </div>
+    <div class="row"><label for="fTel">電話番号<span class="req">必須</span></label><input id="fTel" type="tel" inputmode="tel"></div>
+    <div class="row"><span class="lbl">確定のご連絡</span>
+      <div class="opts radio" id="fPref"><button type="button" class="on">電話で伝えた</button><button type="button">メールで送る</button></div>
+      <div class="row hidden" id="fEmailRow"><label for="fEmail">メールアドレス<span class="req">必須</span></label><input id="fEmail" type="email"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>ご依頼の内容</h2>
+    <div class="row"><span class="lbl">ご依頼のきっかけ（当てはまれば押す）</span>
+      <div class="opts check" id="fPurpose"><button type="button">引越し</button><button type="button">片付け・遺品整理</button></div></div>
+    <div class="row"><span class="lbl">品目（当てはまるものを全部押す）</span><div class="opts check" id="fCats"></div>
+      <div id="fAppl"></div></div>
+    <div class="row hidden" id="fAirconRow"><label for="fAircon">エアコンの取り外し・設置場所</label><input id="fAircon" placeholder="例）取り外し必要／室内機2階・室外機2階ベランダ（壁付けは取り外し不可）"></div>
+    <div class="row"><label for="fItems">商品名・型番</label><input id="fItems" placeholder="例）ドラム式洗濯機 NA-VX800、キヤノン EOS 5D"></div>
+    <div class="row"><label for="fState">状態</label><textarea id="fState" placeholder="例）動作OK、扉に小キズ／箱・説明書あり"></textarea></div>
+    <div class="row"><span class="lbl">期日</span>
+      <div class="opts radio" id="fDue"><button type="button">あり</button><button type="button">なし</button></div>
+      <div class="sub hidden" id="fDueSub"><label class="lbl" for="fDueDate">いつまで</label><input id="fDueDate" type="date"></div></div>
+    <div class="row"><span class="lbl">回収</span>
+      <div class="opts radio" id="fPick"><button type="button">当日回収必須</button><button type="button">当日回収希望</button><button type="button">後日OK</button></div>
+      <div class="sub hidden" id="fCrewSub"><span class="lbl">人手</span>
+        <div class="opts radio" id="fCrew"><button type="button">2人必要</button><button type="button">手伝い可能</button><button type="button">1人OK</button></div></div></div>
+    <div class="row"><span class="lbl">建物</span>
+      <div class="opts radio" id="fHouse"><button type="button">戸建て</button><button type="button">アパート・マンション</button></div>
+      <div class="sub hidden" id="fAptSub">
+        <div class="two">
+          <div><label class="lbl" for="fFloor">何階</label><select id="fFloor"></select></div>
+          <div><span class="lbl">エレベーター</span><div class="opts radio" id="fElev"><button type="button">あり</button><button type="button">なし</button></div></div>
+        </div>
+        <div class="opts check" id="fMaiso" style="margin-top:6px"><button type="button">メゾネット（玄関を開けると階段）</button></div>
+      </div></div>
+    <div class="row"><label for="fLarge">大きな品物と設置場所</label><textarea id="fLarge" placeholder="例）冷蔵庫ファミリー用・2階／タンス2つ・1階"></textarea></div>
+    <div class="row"><label for="fBuilding">駐車場・目印など</label><input id="fBuilding" placeholder="例）駐車場あり（軽トラOK）、青い屋根"></div>
+    <div class="row"><label for="fRequest">お客様のご要望・その他</label><textarea id="fRequest" placeholder="例）到着前に電話がほしい"></textarea></div>
+    <div class="row"><label for="fMemo">社内メモ</label><input id="fMemo" placeholder="例）長尺物あり、軽トラ必要"></div>
+  </div>
+</section>
+
+<section class="pane" id="paneMap">
+  <div class="card">
+    <h2>場所</h2>
+    <div class="two">
+      <div class="row" style="margin-top:0"><label for="fCity">市町村<span class="req">必須</span></label><select id="fCity"></select></div>
+      <div class="row" style="margin-top:0"><label for="fAddr">住所（番地まで入れると正確）</label><input id="fAddr" placeholder="例）中央1-2-3"></div>
+    </div>
+    <div class="row"><div id="map"></div>
+      <div class="legend" id="legend"></div>
+      <div class="muted" id="mapMode" style="margin-top:4px"></div></div>
+  </div>
+</section>
+
+<section class="pane" id="paneDate">
+  <div class="card">
+    <h2>日時</h2>
+    <div id="recBox"></div>
+    <div class="cal" id="cal"></div>
+    <div id="dayBox" class="hidden">
+      <div class="row"><span class="lbl" id="dayTitle">時間枠</span><div class="slots" id="slots"></div></div>
+      <div class="dayinfo" id="dayInfo"></div>
+      <div class="row"><label for="fStaff">担当者<span class="req">必須</span></label><select id="fStaff"></select><div class="muted" id="staffNote"></div></div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<div class="bar">
+  <div class="in">
+    <div class="sum" id="sum"></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+      <div style="display:flex;gap:6px"><button class="btn hold" id="holdBtn" disabled>保留（折り返し）</button><button class="btn primary" id="submitBtn" disabled>登録</button></div>
+      <button class="clr" id="clearBtn">入力を消す</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal hidden" id="holdModal"><div class="sheet">
+  <h3>保留にする（折り返し）</h3>
+  <div class="muted">ここまでの入力内容を保存します。カレンダーには入らず、枠も押さえません。あとで「保留」から再開できます。</div>
+  <div class="row"><span class="lbl">折り返しの予定</span>
+    <div class="opts radio" id="cbQuick"><button type="button">今日中に折り返す</button><button type="button">明日 午前</button><button type="button">明日 午後</button><button type="button">お客様から連絡待ち</button></div></div>
+  <div class="row"><label for="cbText">折り返しメモ（誰が・何を確認するか など）</label><input id="cbText" placeholder="例）清水が12/5の空きを確認して折り返す／ご家族と相談後に連絡"></div>
+  <div class="err" id="holdErr"></div>
+  <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;background:#eef1f4" id="holdCancel">やめる</button><button class="btn primary" style="flex:1" id="holdSave">保留で保存</button></div>
+</div></div>
+
+<div class="modal hidden" id="doneModal"><div class="sheet">
+  <h3>お客様への確認事項 <span class="muted" id="doneId"></span></h3>
+  <div class="talk" id="doneTalk"></div>
+  <button class="btn primary" style="width:100%;margin-top:12px;padding:14px" id="doneClose">閉じて次の受付へ</button>
+</div></div>
+
+<div class="modal hidden" id="holdsModal"><div class="sheet">
+  <h3>保留中（折り返し待ち）</h3>
+  <div id="holdsList"></div>
+  <button class="btn" style="width:100%;background:#eef1f4;margin-top:6px" id="holdsClose">閉じる</button>
+</div></div>
+
+<script>
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbwTiuci5Y3T9LPVUvaqJirU_nefjtRtUjyq2z_we8P0kVkAaJxL0FT3guj1XNwZ4B0O/exec',
+  GMAPS_KEY: '',   // Google Maps の APIキー。空なら無料の地図（OpenStreetMap）で表示
+};
+const AREAS = {
+  '北信': ['長野市','須坂市','中野市','飯山市','千曲市','坂城町','小布施町','高山村','山ノ内町','木島平村','野沢温泉村','信濃町','小川村','飯綱町','栄村'],
+  '東信': ['上田市','小諸市','佐久市','東御市','小海町','佐久穂町','川上村','南牧村','南相木村','北相木村','軽井沢町','御代田町','立科町','長和町','青木村'],
+  '中信': ['松本市','塩尻市','安曇野市','大町市','麻績村','生坂村','山形村','朝日村','筑北村','池田町','松川村','白馬村','小谷村','木曽町','上松町','南木曽町','木祖村','王滝村','大桑村'],
+};
+const CATS=['冷蔵庫','洗濯機','テレビ','エアコン','その他家電','カメラ','オーディオ','貴金属・時計','ゲーム','骨董品','刀剣','除雪機','工具','家具','その他（家の中のもの）'];
+const APPLIANCES=['冷蔵庫','洗濯機','テレビ','エアコン','その他家電'];
+const MAKERS=['パナソニック','日立','東芝','シャープ','三菱','ソニー','AQUA','ハイセンス','アイリスオーヤマ','ニトリ','LG','ハイアール','TCL','ダイキン','富士通ゼネラル','コロナ','その他','不明'];
+const WD=['日','月','火','水','木','金','土'];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(ymd){const [y,m,d]=ymd.split('-').map(Number);return `${m}/${d}(${WD[new Date(y,m-1,d).getDay()]})`;}
+function shortDate(ymd){const [,m,d]=ymd.split('-').map(Number);return `${m}/${d}`;}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+const store={get(k){try{return localStorage.getItem(k)}catch(_){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(_){}},del(k){try{localStorage.removeItem(k)}catch(_){}}};
+
+let CODE=''; let DATA=null;
+const S={pref:'電話で伝えた',purpose:[],cats:[],appl:{},due:'',pick:'',crew:'',house:'',elev:'',maiso:false,date:'',start:null,month:'',holdId:''};
+const FIELDS=['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr','fCity','fFloor'];
+
+async function api(body){
+  const res = await fetch(CONFIG.API_URL,{method:'POST',body:JSON.stringify(Object.assign({code:CODE},body))});
+  return res.json();
+}
+
+/* ---------- ログイン ---------- */
+async function tryLogin(code, silent){
+  CODE=code;
+  const r = await api({action:'staff_auth'}).catch(()=>({ok:false,error:'net'}));
+  if(r.ok){ $('login').classList.add('hidden'); $('app').classList.remove('hidden'); return true; }
+  if(!silent) $('loginErr').textContent = {bad_code:'パスコードが違います',locked:'失敗が続いたため10分間ロックしました',no_passcode:'パスコードがまだ設定されていません（管理者に連絡してください）',net:'通信できませんでした'}[r.error]||'ひらけませんでした';
+  return false;
+}
+$('loginBtn').onclick=async()=>{
+  const c=$('code').value.trim(); if(!c) return;
+  $('loginBtn').disabled=true;
+  if(await tryLogin(c)){ if($('remember').checked) store.set('cowcow_staff_code',c); start(); }
+  $('loginBtn').disabled=false;
+};
+$('code').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
+$('logoutBtn').onclick=()=>{store.del('cowcow_staff_code');location.reload();};
+
+/* ---------- タブ（スマホ） ---------- */
+function showPane(id){ document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===id)); [...$('tabs').children].forEach(b=>b.classList.toggle('on',b.dataset.p===id)); if(id==='paneMap') mapResize(); window.scrollTo({top:0}); }
+$('tabs').onclick=e=>{const b=e.target.closest('button'); if(b) showPane(b.dataset.p);};
+
+/* ---------- 選ぶボタン ---------- */
+function bindRadio(id,key,after){ $(id).onclick=e=>{const b=e.target.closest('button');if(!b)return; S[key]= S[key]===b.textContent?'':b.textContent; [...$(id).children].forEach(x=>x.classList.toggle('on',x.textContent===S[key])); after&&after(); refresh();}; }
+function setRadio(id,key,val){ S[key]=val; [...$(id).children].forEach(x=>x.classList.toggle('on',x.textContent===val)); }
+function bindCheck(id,key){ $(id).onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.textContent;S[key]=S[key].includes(v)?S[key].filter(x=>x!==v):S[key].concat(v);[...$(id).children].forEach(x=>x.classList.toggle('on',S[key].includes(x.textContent)));refresh();}; }
+
+$('fPref').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.pref=b.textContent;[...$('fPref').children].forEach(x=>x.classList.toggle('on',x===b));$('fEmailRow').classList.toggle('hidden',S.pref!=='メールで送る');refresh();};
+bindCheck('fPurpose','purpose');
+bindRadio('fDue','due',()=>$('fDueSub').classList.toggle('hidden',S.due!=='あり'));
+bindRadio('fPick','pick',()=>{const need=S.pick==='当日回収必須'||S.pick==='当日回収希望';$('fCrewSub').classList.toggle('hidden',!need);if(!need)setRadio('fCrew','crew','');});
+bindRadio('fCrew','crew');
+bindRadio('fHouse','house',()=>$('fAptSub').classList.toggle('hidden',S.house!=='アパート・マンション'));
+bindRadio('fElev','elev');
+$('fMaiso').onclick=()=>{S.maiso=!S.maiso;$('fMaiso').children[0].classList.toggle('on',S.maiso);refresh();};
+$('fFloor').innerHTML='<option value="">選ぶ</option>'+[1,2,3,4,5,6,7,8,9].map(f=>`<option>${f}階</option>`).join('')+'<option>10階以上</option>';
+
+const years=(()=>{const y=new Date().getFullYear();const a=[];for(let i=y;i>=y-20;i--)a.push(i+'年');return a.concat(['それより前','不明']);})();
+function drawCats(){
+  $('fCats').innerHTML=CATS.map(c=>`<button type="button" class="${S.cats.includes(c)?'on':''}">${c}</button>`).join('');
+  const ap=S.cats.filter(c=>APPLIANCES.includes(c));
+  $('fAppl').innerHTML = ap.length ? '<div class="muted" style="margin-top:8px">家電のメーカーと製造年（分かれば）</div>'+ap.map(c=>{const a=S.appl[c]||{};
+    return `<div class="appl"><b>${c}</b><select data-c="${c}" data-k="maker"><option value="">メーカー</option>${MAKERS.map(m=>`<option${a.maker===m?' selected':''}>${m}</option>`).join('')}</select><select data-c="${c}" data-k="year"><option value="">製造年</option>${years.map(m=>`<option${a.year===m?' selected':''}>${m}</option>`).join('')}</select></div>`;}).join('') : '';
+  $('fAirconRow').classList.toggle('hidden',!S.cats.includes('エアコン'));
+}
+$('fCats').onclick=e=>{const b=e.target.closest('button');if(!b)return;const c=b.textContent;S.cats=S.cats.includes(c)?S.cats.filter(x=>x!==c):S.cats.concat(c);drawCats();refresh();};
+$('fAppl').onchange=e=>{const s=e.target.closest('select');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;refresh();};
+['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',refresh));
+
+/* ---------- 地図 ---------- */
+const MAP={kind:'',m:null,markers:[],home:null,popup:null};
+function loadScript(src){return new Promise((ok,ng)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ng;document.head.appendChild(s);});}
+function loadCss(href){const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l);}
+async function mapInit(){
+  const nagano={lat:36.3,lng:138.1};
+  if(CONFIG.GMAPS_KEY){
+    await loadScript('https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(CONFIG.GMAPS_KEY)+'&language=ja&region=JP');
+    MAP.kind='g';
+    MAP.m=new google.maps.Map($('map'),{center:nagano,zoom:9,mapTypeControl:false,streetViewControl:false,fullscreenControl:true,gestureHandling:'greedy'});
+    MAP.popup=new google.maps.InfoWindow();
+  }else{
+    loadCss('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+    await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+    MAP.kind='l';
+    MAP.m=L.map('map').setView([nagano.lat,nagano.lng],9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(MAP.m);
+  }
+}
+function mapResize(){ if(MAP.kind==='l'&&MAP.m) setTimeout(()=>{MAP.m.invalidateSize();drawPins();},60); }
+function pinSvg(text,color,dim,dashed){
+  const w=Math.max(44,text.length*8+14);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="34" viewBox="0 0 ${w} 34"><g opacity="${dim?0.3:1}"><path d="M4 2h${w-8}a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H${w/2+6}l-6 8-6-8H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="${color}" stroke="#fff" stroke-width="2" ${dashed?'stroke-dasharray="3 2"':''}/><text x="${w/2}" y="17" font-size="12" font-family="sans-serif" font-weight="700" fill="#fff" text-anchor="middle">${text}</text></g></svg>`;
+}
+function homeSvg(){return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 40 46"><path d="M20 44S4 28 4 18a16 16 0 0 1 32 0c0 10-16 26-16 26z" fill="#e8743b" stroke="#fff" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#fff"/></svg>`;}
+function svgUrl(s){return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(s);}
+function mapClear(){ MAP.markers.forEach(m=>MAP.kind==='g'?m.setMap(null):MAP.m.removeLayer(m)); MAP.markers=[]; }
+function mapAddPin(p,dim,html){
+  const label=shortDate(p.date)+(p.start!=null?' '+p.start+'時':'');
+  const svg=pinSvg(label,p.color,dim,p.tentative), w=Math.max(44,label.length*8+14);
+  let mk;
+  if(MAP.kind==='g'){
+    mk=new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map:MAP.m,icon:{url:svgUrl(svg),anchor:new google.maps.Point(w/2,32)},zIndex:dim?1:10,title:p.name});
+    mk.addListener('click',()=>{MAP.popup.setContent(html());MAP.popup.open({map:MAP.m,anchor:mk});});
+  }else{
+    mk=L.marker([p.lat,p.lng],{icon:L.divIcon({html:svg,className:'',iconSize:[w,34],iconAnchor:[w/2,32],popupAnchor:[0,-30]}),zIndexOffset:dim?0:1000}).addTo(MAP.m);
+    mk.bindPopup(()=>html(),{maxWidth:260});
+  }
+  MAP.markers.push(mk);
+}
+function mapSetHome(c){
+  if(MAP.home){MAP.kind==='g'?MAP.home.setMap(null):MAP.m.removeLayer(MAP.home);MAP.home=null;}
+  if(!c) return;
+  if(MAP.kind==='g') MAP.home=new google.maps.Marker({position:{lat:c.lat,lng:c.lng},map:MAP.m,icon:{url:svgUrl(homeSvg()),anchor:new google.maps.Point(20,44)},zIndex:20,title:'お客様'});
+  else MAP.home=L.marker([c.lat,c.lng],{icon:L.divIcon({html:homeSvg(),className:'',iconSize:[40,46],iconAnchor:[20,44]}),zIndexOffset:2000}).addTo(MAP.m).bindTooltip('お客様');
+}
+function mapFit(list){
+  if(!list.length) return;
+  if(list.length===1){ MAP.kind==='g'?(MAP.m.setCenter(list[0]),MAP.m.setZoom(12)):MAP.m.setView([list[0].lat,list[0].lng],12); return; }
+  if(MAP.kind==='g'){const b=new google.maps.LatLngBounds();list.forEach(p=>b.extend(p));MAP.m.fitBounds(b,40);}
+  else MAP.m.fitBounds(L.latLngBounds(list.map(p=>[p.lat,p.lng])),{padding:[30,30],maxZoom:13});
+}
+function spread(points){
+  const seen={};
+  return points.map(p=>{const k=p.lat.toFixed(3)+','+p.lng.toFixed(3);const n=seen[k]=(seen[k]||0)+1;
+    if(n===1) return p; const a=n*1.3; return Object.assign({},p,{lat:p.lat+0.004*Math.cos(a)*Math.ceil(n/6),lng:p.lng+0.005*Math.sin(a)*Math.ceil(n/6)});});
+}
+function popupHtml(p){
+  const dayCount=DATA.points.filter(x=>x.date===p.date&&x.staff===p.staff&&!x.tentative).length;
+  const gmap='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('長野県'+p.city+p.address);
+  return `<div class="pinpop"><div style="font-weight:700;font-size:14px">${fmtDate(p.date)} ${esc(p.slot)}</div>
+    <div>${p.tentative?'<span style="color:#888">仮（未対応・第1希望）</span>':'担当：<b style="color:'+p.color+'">'+esc(p.staff||'未定')+'</b>'+(dayCount>1?`（この日 ${dayCount}件）`:'')}</div>
+    <div>${esc(p.name)} 様</div>
+    <div>${esc(p.city)} ${esc(p.address)}${p.approx?'<span style="color:#888">（市町村の中心に表示）</span>':''}</div>
+    <div>${esc(p.requestType)}：${esc(p.items)}</div>
+    ${p.detail?`<div style="color:#555;white-space:pre-wrap">${esc(p.detail)}</div>`:''}
+    ${p.condition?`<div style="color:#555;white-space:pre-wrap">${esc(p.condition)}</div>`:''}
+    ${p.memo?`<div style="color:#8a5a00">メモ：${esc(p.memo)}</div>`:''}
+    <div><a href="${gmap}" target="_blank" rel="noopener">Googleマップで開く</a></div>
+    <button class="btn primary" data-pickday="${p.date}" data-staff="${esc(p.staff)}">この日で予約する</button></div>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pickday]'); if(!b) return; pickDate(b.dataset.pickday,b.dataset.staff); if(MAP.kind==='l')MAP.m.closePopup(); else if(MAP.popup)MAP.popup.close(); if(window.innerWidth<1000) showPane('paneDate');});
+function drawPins(){
+  if(!MAP.m||!DATA) return;
+  mapClear();
+  const pts=spread(DATA.points);
+  pts.forEach(p=>mapAddPin(p, S.date && p.date!==S.date, ()=>popupHtml(p)));
+  mapSetHome(DATA.center);
+  let fit = S.date ? pts.filter(p=>p.date===S.date) : (DATA.center ? pts.filter(p=>Math.abs(p.lat-DATA.center.lat)<0.35 && Math.abs(p.lng-DATA.center.lng)<0.45) : pts);
+  if(DATA.center) fit=fit.concat([DATA.center]);
+  mapFit(fit.length?fit:pts);
+  $('mapMode').textContent = S.date ? `${fmtDate(S.date)} の予定を強調表示中（ピンを押すと内容が見られます）` : 'これからの予定をすべて表示中。灰色の点線は未対応の仮予約。ピンを押すと内容が見られます。';
+}
+function drawLegend(){
+  $('legend').innerHTML = DATA.staff.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')
+    + '<span><i style="background:#9e9e9e"></i>未対応（仮）</span><span><i style="background:#e8743b"></i>お客様</span>';
+}
+
+/* ---------- データ読み込み ---------- */
+let loadSeq=0;
+async function load(){
+  const my=++loadSeq;
+  try{
+    const r=await api({action:'staff_data',city:$('fCity').value,address:$('fAddr').value.trim()});
+    if(my!==loadSeq) return;
+    if(!r.ok){ if(r.error==='bad_code'||r.error==='no_passcode'){store.del('cowcow_staff_code');location.reload();return;} throw new Error(r.message||r.error); }
+    DATA=r;
+    $('holdCount').textContent=(r.holds||[]).length;
+    { const cur=$('fRecv').value||store.get('cowcow_receiver')||''; $('fRecv').innerHTML='<option value="">選んでください</option>'+r.staff.map(s=>`<option${s.name===cur?' selected':''}>${esc(s.name)}</option>`).join('')+'<option'+(cur==='その他'?' selected':'')+'>その他</option>'; }
+    if($('fCity').value && !r.center) toast('場所が見つかりませんでした。住所を見直してください');
+    if(S.date && !cand(S.date)){ toast(fmtDate(S.date)+' は空きがなくなりました'); S.date=''; S.start=null; }
+    drawLegend(); drawPins(); drawDate(); refresh();
+  }catch(e){ toast('読み込めませんでした：'+e.message); }
+}
+$('reloadBtn').onclick=load;
+$('fCity').onchange=()=>{load();refresh();};
+$('fAddr').addEventListener('change',load);
+$('fAddr').addEventListener('keydown',e=>{if(e.key==='Enter')load();});
+
+/* ---------- 日時 ---------- */
+function cand(date){return DATA&&DATA.candidates.find(c=>c.date===date);}
+function pickDate(date,staffHint){
+  if(!date){ S.date=''; S.start=null; $('fStaff').dataset.v=''; drawDate(); drawPins(); refresh(); return; }
+  const c=cand(date); if(!c){ toast('この日は空いている時間枠がありません'); return; }
+  S.date=date; S.month=date.slice(0,7);
+  if(S.start!=null && !c.slots.some(s=>s.start===S.start&&s.available)) S.start=null;
+  $('fStaff').dataset.v = staffHint || '';
+  drawDate(); drawPins(); refresh();
+}
+function dist(a,b){const R=6371,r=x=>x*Math.PI/180;const dl=r(b.lat-a.lat),dg=r(b.lng-a.lng);const h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function drawDate(){
+  if(!DATA) return;
+  const near=DATA.center?DATA.candidates.filter(c=>c.isNear).slice(0,5):[];
+  $('recBox').innerHTML = !DATA.center ? '<div class="muted" style="margin-bottom:6px">市町村を入れると、近くへ行く日に ◎ が付き、ここにおすすめが出ます。</div>'
+    : near.length ? '<div class="lbl">◎ 近くへ行く日（おすすめ順）</div>'+near.map(c=>`<div class="rec${S.date===c.date?' sel':''}" data-d="${c.date}"><b>${fmtDate(c.date)}</b>　${c.near.slice(0,2).map(n=>`<span style="color:${n.color};font-weight:700">${esc(n.staff)}</span> ${esc(n.city)} ${esc(n.slot)}（${n.km}km）`).join('／')}</div>`).join('')
+    : `<div class="muted" style="margin-bottom:6px">近く（${DATA.nearKm}km以内）へ行く予定はまだありません。カレンダーの空いている日から選んでください。</div>`;
+  const idx={}; DATA.candidates.forEach(c=>idx[c.date]=c);
+  const ds=DATA.candidates.map(c=>c.date).sort();
+  const first=ds[0]||DATA.today, last=ds[ds.length-1]||DATA.today;
+  const months=[]; {let [y,m]=first.split('-').map(Number); const [ly,lm]=last.split('-').map(Number); while(y<ly||(y===ly&&m<=lm)){months.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;}}}
+  if(!months.includes(S.month)) S.month=months[0]||'';
+  if(S.month){
+    const mi=months.indexOf(S.month); const [y,m]=S.month.split('-').map(Number);
+    const fd=new Date(y,m-1,1).getDay(), nd=new Date(y,m,0).getDate();
+    let cells=''; for(let i=0;i<fd;i++) cells+='<div class="cd blank"></div>';
+    for(let d=1;d<=nd;d++){
+      const ymd=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, w=(fd+d-1)%7, c=idx[ymd];
+      const wc=w===0?' sun':w===6?' sat':'';
+      if(!c){ cells+=`<div class="cd off${wc}"><span>${d}</span><small>－</small></div>`; continue; }
+      const free=c.slots.filter(s=>s.available).length;
+      cells+=`<div class="cd${wc}${c.isNear?' near':''}${S.date===ymd?' sel':''}" data-d="${ymd}"><span>${d}</span><small>${c.isNear?'◎':''}空${free}${c.count?'・'+c.count+'件':''}</small></div>`;
+    }
+    $('cal').innerHTML=`<div class="mhd"><button type="button" data-m="-1"${mi<=0?' disabled':''}>◀</button><b>${y}年${m}月</b><button type="button" data-m="1"${mi>=months.length-1?' disabled':''}>▶</button></div>
+      <div class="wk">${WD.map(x=>`<div>${x}</div>`).join('')}</div><div class="days">${cells}</div>
+      <div class="muted" style="margin-top:4px">「空3」＝空いている時間枠の数、「2件」＝その日の予定の数</div>`;
+    $('cal').dataset.months=months.join(',');
+  }
+  const c=S.date&&cand(S.date);
+  $('dayBox').classList.toggle('hidden',!c);
+  if(!c) return;
+  $('dayTitle').textContent=`${fmtDate(S.date)} の時間枠`;
+  $('slots').innerHTML=c.slots.map(s=>`<button type="button" data-s="${s.start}" class="${S.start===s.start?'on':''}" ${s.available?'':'disabled'}>${esc(s.label)}</button>`).join('');
+  const todays=DATA.points.filter(p=>p.date===S.date).sort((a,b)=>(a.start||0)-(b.start||0));
+  $('dayInfo').innerHTML = todays.length ? '<b>この日の予定</b><br>'+todays.map(p=>{
+      const km=DATA.center?Math.round(dist(DATA.center,p)*10)/10:null;
+      return `${esc(p.slot)}　<span style="color:${p.color};font-weight:700">${esc(p.staff||'未定')}</span>　${esc(p.city)}${km!=null?`（${km}km）`:''}${p.tentative?'　<span class="muted">仮</span>':''}`;}).join('<br>')
+    : 'この日はまだ予定がありません';
+  const rec=$('fStaff').dataset.v || (c.near[0]&&c.near[0].staff) || '';
+  const busyAt=DATA.points.filter(p=>p.date===S.date&&!p.tentative&&p.start===S.start).map(p=>p.staff);
+  $('fStaff').innerHTML='<option value="">選んでください</option>'+DATA.staff.map(s=>`<option value="${esc(s.name)}"${s.name===rec?' selected':''}>${esc(s.name)}${busyAt.includes(s.name)?'（この枠に予定あり）':''}${c.staffOnDay.includes(s.name)?'（この日出張あり）':''}</option>`).join('');
+  $('staffNote').textContent = (c.near[0]&&c.near[0].staff) ? `おすすめ：${c.near[0].staff}（この日いちばん近くへ行く担当者）` : '';
+}
+$('cal').onclick=e=>{
+  const mb=e.target.closest('button[data-m]');
+  if(mb){const ms=$('cal').dataset.months.split(',');const i=ms.indexOf(S.month)+Number(mb.dataset.m);if(ms[i]){S.month=ms[i];drawDate();}return;}
+  const d=e.target.closest('.cd[data-d]'); if(d) pickDate(d.dataset.d===S.date?'':d.dataset.d);
+};
+$('recBox').onclick=e=>{const d=e.target.closest('.rec');if(d)pickDate(d.dataset.d);};
+$('slots').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.start=+b.dataset.s;drawDate();refresh();};
+$('fRecv').onchange=()=>{store.set('cowcow_receiver',$('fRecv').value);refresh();};
+$('fStaff').onchange=()=>{$('fStaff').dataset.v=$('fStaff').value;refresh();};
+
+/* ---------- 下の帯・登録 ---------- */
+function v(id){return $(id).value.trim();}
+function requestType(){ return S.purpose.includes('引越し')?'引っ越しに伴う買取':S.purpose.includes('片付け・遺品整理')?'片付け・遺品整理':'売りたいものがある'; }
+function buildPayload(){
+  const c=S.date?cand(S.date):null;
+  const slot=c&&S.start!=null?c.slots.find(s=>s.start===S.start):null;
+  const appl=S.cats.filter(x=>APPLIANCES.includes(x)).map(x=>{const a=S.appl[x]||{};const t=[a.maker,a.year?a.year+'製':''].filter(Boolean).join(' ');return t?`${x}：${t}`:'';}).filter(Boolean);
+  const detail=[...appl, v('fItems')?'商品：'+v('fItems'):'', v('fState')?'状態：'+v('fState'):'', (S.cats.includes('エアコン')&&v('fAircon'))?'エアコン：'+v('fAircon'):''].filter(Boolean).join('\n');
+  const due = S.due==='あり' ? ('期日：'+(v('fDueDate')?fmtDate(v('fDueDate'))+'まで':'あり（日付未定）')) : S.due==='なし' ? '期日：なし' : '';
+  const pick = S.pick ? '回収：'+S.pick+(S.crew?'（'+S.crew+'）':'') : '';
+  const cond=[S.purpose.length?'きっかけ：'+S.purpose.join('・'):'', due, pick].filter(Boolean).join('\n');
+  const house = S.house==='アパート・マンション' ? ['アパート・マンション',v('fFloor'),S.maiso?'メゾネット':'',S.elev?'エレベーター'+S.elev:''].filter(Boolean).join('・') : S.house;
+  const building=[house, v('fBuilding')].filter(Boolean).join('／');
+  return {action:'staff_book',date:S.date,start:S.start,slotLabel:slot?slot.label:'',staff:v('fStaff'),name:v('fName'),kana:v('fKana'),tel:v('fTel'),
+    city:v('fCity'),region:Object.keys(AREAS).find(r=>AREAS[r].includes(v('fCity')))||'',address:v('fAddr'),building,
+    requestType:requestType(),items:S.cats.join('、'),detail,condition:cond,large:v('fLarge'),request:v('fRequest'),
+    contactPref:S.pref==='メールで送る'?'メール':'電話',email:v('fEmail'),memo:v('fMemo'),receiver:v('fRecv'),holdId:S.holdId||''};
+}
+function refresh(){
+  const p=buildPayload();
+  const miss=[]; if(!p.name)miss.push('お名前'); if(!p.tel)miss.push('電話番号'); if(!p.city)miss.push('市町村'); if(!p.date)miss.push('日付'); else if(p.start==null)miss.push('時間枠'); if(!p.staff)miss.push('担当者'); if(p.contactPref==='メール'&&!p.email)miss.push('メール'); if(!p.receiver)miss.push('受付者');
+  const parts=[p.city?esc(p.city+' '+p.address):'', p.date?fmtDate(p.date)+(p.slotLabel?' '+esc(p.slotLabel):''):'', p.staff?esc(p.staff):'', p.name?esc(p.name)+' 様':'', p.items?esc(p.items):''].filter(Boolean);
+  $('sum').innerHTML=(parts.join('｜')||'<span class="muted">どこから入れても大丈夫です</span>')+(miss.length?`<br><span class="miss">あと：${miss.join('・')}</span>`:'<br><span style="color:var(--ok);font-weight:700">登録できます</span>');
+  $('submitBtn').disabled=!!miss.length;
+  $('holdBtn').disabled=!p.tel;
+  const set=(id,ok)=>{$(id).className='ck'+(ok?' done':'');$(id).textContent=ok?'✓':'!';};
+  set('ckForm',p.name&&p.tel&&p.receiver); set('ckMap',!!p.city); set('ckDate',p.date&&p.start!=null&&p.staff);
+}
+$('submitBtn').onclick=async()=>{
+  const p=buildPayload();
+  if(!confirm(`${fmtDate(p.date)} ${p.slotLabel}　担当：${p.staff}\n${p.name} 様（${p.city}）\nこの内容で登録しますか？`)) return;
+  $('submitBtn').disabled=true; $('submitBtn').textContent='登録中…';
+  try{
+    const r=await api(p);
+    if(!r.ok){ toast(r.message||'登録できませんでした'); if(r.error==='slot_taken'){S.start=null;load();} return; }
+    showDone(p, r.id);
+    clearAll(); load();
+  }catch(e){ toast('通信エラー：もう一度押してください'); }
+  finally{ $('submitBtn').textContent='登録'; refresh(); }
+};
+function clearAll(){
+  ['fName','fKana','fTel','fEmail','fItems','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fAircon','fAddr'].forEach(id=>$(id).value='');
+  $('fCity').value=''; $('fFloor').value=''; $('fStaff').dataset.v='';
+  Object.assign(S,{pref:'電話で伝えた',purpose:[],cats:[],appl:{},due:'',pick:'',crew:'',house:'',elev:'',maiso:false,date:'',start:null,holdId:''});
+  $('resumeBar').classList.add('hidden');
+  document.querySelectorAll('.opts button').forEach(b=>b.classList.remove('on')); $('fPref').children[0].classList.add('on');
+  ['fEmailRow','fDueSub','fCrewSub','fAptSub'].forEach(id=>$(id).classList.add('hidden'));
+  drawCats(); refresh(); showPane('paneForm');
+}
+$('clearBtn').onclick=()=>{ if(confirm('入力した内容を消しますか？')){ clearAll(); load(); } };
+
+
+
+/* ---------- 予約確定後：お客様への確認事項 ---------- */
+function showDone(p,id){
+  const [s,e]=(p.slotLabel||'').split('〜').map(x=>x.replace(':00','時').replace(/:(\d\d)/,'時$1分'));
+  const [y,m,d]=p.date.split('-').map(Number); const w=WD[new Date(y,m-1,d).getDay()];
+  $('doneId').textContent='受付番号 '+id;
+  $('doneTalk').innerHTML=`
+    <div class="when">訪問日時<b>${m}月${d}日（${w}）${esc(s)}〜${esc(e)}</b></div>
+    <p>訪問時間は<b>${esc(s)}から${esc(e)}の間</b>でのお伺いで、時間枠での訪問となりますのでお間違いないようお願いいたします。到着時間は当日わかり次第、査定員からお電話させていただきます。</p>
+    <p>訪問査定は無料ですが、キャンセルや予定変更の場合は再度ご連絡ください。</p>
+    <p>何かご不明な点はございますか？</p>
+    <p>本日は<b>${esc(p.receiver)}</b>がご予約を承りました。お問い合わせありがとうございました。</p>
+    <div class="recap">（必要なら読み上げて確認）<br>お名前：${esc(p.name)} 様　電話：${esc(p.tel)}<br>ご住所：${esc(p.city)} ${esc(p.address)}<br>品目：${esc(p.items||'—')}　担当：${esc(p.staff)}</div>`;
+  $('doneModal').classList.remove('hidden');
+}
+$('doneClose').onclick=()=>$('doneModal').classList.add('hidden');
+
+/* ---------- 保留（折り返し） ---------- */
+function snapshot(){
+  const f={}; FIELDS.forEach(id=>f[id]=$(id).value);
+  const s=JSON.parse(JSON.stringify(S)); delete s.holdId; delete s.month;
+  return {S:s,f:f,staff:$('fStaff').value||$('fStaff').dataset.v||''};
+}
+function restore(snap,id,label){
+  clearAll();
+  if(snap&&snap.S) Object.assign(S,snap.S);
+  if(snap&&snap.f) FIELDS.forEach(k=>{ if(snap.f[k]!==undefined) $(k).value=snap.f[k]; });
+  S.holdId=id; $('fStaff').dataset.v=(snap&&snap.staff)||'';
+  // ボタンの見た目を戻す
+  [...$('fPref').children].forEach(x=>x.classList.toggle('on',x.textContent===S.pref)); $('fEmailRow').classList.toggle('hidden',S.pref!=='メールで送る');
+  [...$('fPurpose').children].forEach(x=>x.classList.toggle('on',S.purpose.includes(x.textContent)));
+  [['fDue','due'],['fPick','pick'],['fCrew','crew'],['fHouse','house'],['fElev','elev']].forEach(([el,k])=>[...$(el).children].forEach(x=>x.classList.toggle('on',x.textContent===S[k])));
+  $('fMaiso').children[0].classList.toggle('on',!!S.maiso);
+  $('fDueSub').classList.toggle('hidden',S.due!=='あり');
+  $('fCrewSub').classList.toggle('hidden',!(S.pick==='当日回収必須'||S.pick==='当日回収希望'));
+  $('fAptSub').classList.toggle('hidden',S.house!=='アパート・マンション');
+  drawCats();
+  $('resumeText').innerHTML='保留を再開中：<b>'+esc(label)+'</b>（登録すると、この保留が予約に変わります）';
+  $('resumeBar').classList.remove('hidden');
+  load();
+}
+$('resumeQuit').onclick=()=>{ if(confirm('再開をやめて入力を消しますか？（保留はそのまま残ります）')){ clearAll(); load(); } };
+$('holdBtn').onclick=()=>{ $('holdErr').textContent=''; $('holdModal').classList.remove('hidden'); };
+$('holdCancel').onclick=()=>$('holdModal').classList.add('hidden');
+let cbQuick='';
+$('cbQuick').onclick=e=>{const b=e.target.closest('button');if(!b)return;cbQuick=cbQuick===b.textContent?'':b.textContent;[...$('cbQuick').children].forEach(x=>x.classList.toggle('on',x.textContent===cbQuick));};
+$('holdSave').onclick=async()=>{
+  const p=buildPayload(); p.hold=true; p.callback=[cbQuick,$('cbText').value.trim()].filter(Boolean).join('／'); p.form=snapshot();
+  $('holdSave').disabled=true; $('holdSave').textContent='保存中…';
+  try{
+    const r=await api(p);
+    if(!r.ok){ $('holdErr').textContent=r.message||'保存できませんでした'; return; }
+    $('holdModal').classList.add('hidden'); $('cbText').value=''; cbQuick=''; [...$('cbQuick').children].forEach(x=>x.classList.remove('on'));
+    toast(`保留で保存しました（${r.id}）。右上の「保留」から再開できます`);
+    clearAll(); load();
+  }catch(e){ $('holdErr').textContent='通信エラー：もう一度押してください'; }
+  finally{ $('holdSave').disabled=false; $('holdSave').textContent='保留で保存'; }
+};
+function drawHolds(){
+  const hs=(DATA&&DATA.holds)||[];
+  $('holdsList').innerHTML = hs.length ? hs.slice().reverse().map(h=>`<div class="hitem">
+      <div><b>${esc(h.name||'（名前未入力）')}</b> 様　<a href="tel:${esc(h.tel)}">${esc(h.tel)}</a></div>
+      <div class="muted">${esc(h.at)} 受付　${esc(h.city)}　${esc(h.items)}</div>
+      ${h.callback?`<div class="cb">折り返し：${esc(h.callback)}</div>`:''}
+      ${h.memo?`<div class="muted">メモ：${esc(h.memo)}</div>`:''}
+      <div class="acts"><button class="btn primary" data-resume="${esc(h.id)}">再開する</button><button class="btn" style="background:#eef1f4" data-hcancel="${esc(h.id)}">取り消す</button></div>
+    </div>`).join('') : '<div class="muted">保留中の受付はありません。</div>';
+}
+$('holdListBtn').onclick=()=>{ drawHolds(); $('holdsModal').classList.remove('hidden'); };
+$('holdsClose').onclick=()=>$('holdsModal').classList.add('hidden');
+$('holdsList').onclick=async e=>{
+  const rb=e.target.closest('[data-resume]'), cb=e.target.closest('[data-hcancel]');
+  const hs=(DATA&&DATA.holds)||[];
+  if(rb){ const h=hs.find(x=>x.id===rb.dataset.resume); if(!h) return; $('holdsModal').classList.add('hidden');
+    if(h.form) restore(h.form,h.id,(h.name||h.tel)+' 様');
+    else { restore({S:{},f:{fName:h.name,fTel:h.tel,fCity:h.city}},h.id,(h.name||h.tel)+' 様'); } return; }
+  if(cb){ if(!confirm('この保留を取り消しますか？（予約一覧では「キャンセル」になります）')) return;
+    const r=await api({action:'staff_hold_cancel',holdId:cb.dataset.hcancel}); if(!r.ok){toast(r.message||'取り消せませんでした');return;}
+    toast('保留を取り消しました'); await load(); drawHolds(); }
+};
+
+/* ---------- 起動 ---------- */
+$('fCity').innerHTML='<option value="">選んでください</option>'+Object.keys(AREAS).map(r=>`<optgroup label="${r}">${AREAS[r].map(c=>`<option>${c}</option>`).join('')}</optgroup>`).join('');
+drawCats(); refresh();
+async function start(){ try{ await mapInit(); }catch(e){ $('map').innerHTML='<div class="muted" style="padding:40px;text-align:center">地図を読み込めませんでした</div>'; } load(); }
+(async()=>{
+  const saved=store.get('cowcow_staff_code');
+  if(saved && await tryLogin(saved,true)) start();
+  else $('login').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>

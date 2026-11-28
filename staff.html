@@ -394,10 +394,15 @@ function drawCats(){
 $('fCats').onclick=e=>{const b=e.target.closest('button');if(!b)return;const c=b.textContent;S.cats=S.cats.includes(c)?S.cats.filter(x=>x!==c):S.cats.concat(c);drawCats();refresh();};
 $('fAppl').onclick=e=>{const b=e.target.closest('[data-k="origin"] button');if(!b)return;const c=b.parentElement.dataset.c;const a=S.appl[c]=S.appl[c]||{};const v=b.textContent;a.origin=a.origin===v?'':v;a.maker='';drawCats();refresh();};
 $('fAppl').onchange=e=>{const s=e.target.closest('select');if(!s)return;const a=S.appl[s.dataset.c]=S.appl[s.dataset.c]||{};a[s.dataset.k]=s.value;if(s.dataset.k==='maker')drawCats();refresh();};
-$('fAppl').oninput=e=>{const s=e.target.closest('input');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;refresh();};
-['fName','fKana','fTel','fEmail','fItems','fOther','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',refresh));
-// フリガナはひらがなで入れてもカタカナに直す
-$('fKana').addEventListener('blur',()=>{ $('fKana').value=$('fKana').value.replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60)); refresh(); });
+$('fAppl').oninput=e=>{const s=e.target.closest('input');if(!s)return;(S.appl[s.dataset.c]=S.appl[s.dataset.c]||{})[s.dataset.k]=s.value;softRefresh(e);};
+// 携帯の日本語入力（変換中）に画面を書きかえると、最初の文字が消えることがあるので、変換が終わってから反映する
+let composing=false, refreshTimer=0;
+const softRefresh=e=>{ if(composing||(e&&e.isComposing)) return; clearTimeout(refreshTimer); refreshTimer=setTimeout(refresh,300); };
+document.addEventListener('compositionstart',()=>{composing=true;},true);
+document.addEventListener('compositionend',()=>{composing=false;softRefresh();},true);
+['fName','fKana','fTel','fEmail','fItems','fOther','fState','fDueDate','fLarge','fBuilding','fRequest','fMemo','fFloor','fAircon'].forEach(id=>$(id).addEventListener('input',softRefresh));
+// フリガナはひらがなで入れてもカタカナに直す（入力が終わって欄を離れたとき）
+$('fKana').addEventListener('blur',()=>{ const v=$('fKana').value, k=v.replace(/[\u3041-\u3096]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60)); if(k!==v) $('fKana').value=k; refresh(); });
 
 /* ---------- 地図 ---------- */
 const MAP={kind:'',m:null,markers:[],home:null,popup:null};

@@ -52,6 +52,9 @@
   .cd.out{border-color:transparent}
   .cd.sel{border:2px solid var(--main);background:#eaf2f8}
   .cd.has small{color:var(--main);font-weight:700}
+  .cd.near{background:#fff4e0;border-color:#f0a040}
+  .cd.near small{color:#e07800;font-weight:700}
+  .nearlegend{font-size:12px;color:#8a5a00;background:#fff4e0;border-radius:6px;padding:6px 8px;margin:6px 0 0}
   .day{flex:none;width:64px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:center;padding:6px 0;cursor:pointer;scroll-snap-align:start}
   .day .d{font-size:16px;font-weight:700}
   .day .w{font-size:12px}
@@ -280,6 +283,7 @@
     <div id="limitNote" class="note hidden" style="margin:0 0 10px"></div>
     <div id="slotsLoading" class="loading">空き状況を読み込み中…</div>
     <div class="days" id="days"></div>
+    <div class="nearlegend hidden" id="nearLegend">◎ … お近くに伺う予定がある日です。<b>ご予約が取りやすく</b>おすすめです。</div>
     <div class="slots" id="slots"></div>
     <div class="wishes" id="wishes"></div>
     <div class="err" id="e_wish">第1希望を選んでください</div>
@@ -600,6 +604,8 @@ $('region').addEventListener('change', ()=>{
   sel.innerHTML = '<option value="">選択してください</option>' + AREAS[r].map(c=>`<option>${c}</option>`).join('');
   sel.disabled=false;
 });
+// 市町村を選ぶと、近くに伺う予定がある日に「◎」を付ける
+$('city').addEventListener('change', ()=>{ if(CONFIG.API_URL) loadSlots(); });
 
 /* ---------- 日時（空き状況） ---------- */
 function demoSlots(){
@@ -614,11 +620,15 @@ function demoSlots(){
 }
 async function loadSlots(){
   try{
-    const data = CONFIG.API_URL ? await (await fetch(CONFIG.API_URL+'?action=slots')).json() : demoSlots();
+    const city = ($('city').value||'').indexOf('上記以外')===0 ? '' : ($('city').value||'');
+    const data = CONFIG.API_URL ? await (await fetch(CONFIG.API_URL+'?action=slots'+(city?'&city='+encodeURIComponent(city):''))).json() : demoSlots();
+    const prev = state.days && state.days[state.dayIdx] ? state.days[state.dayIdx].date : null;
     state.days = data.days||[];
     $('slotsLoading').classList.add('hidden');
-    const first = state.days.findIndex(d=>!d.closed && d.slots.some(s=>s.available));
+    const keep = prev ? state.days.findIndex(d=>d.date===prev) : -1;
+    const first = keep>=0 ? keep : state.days.findIndex(d=>!d.closed && d.slots.some(s=>s.available));
     state.dayIdx = first; renderDays(); renderSlots();
+    $('nearLegend').classList.toggle('hidden', !state.days.some(d=>d.near));
   }catch(e){
     $('slotsLoading').textContent='空き状況を読み込めませんでした。時間をおいて再読み込みするか、お電話でお問い合わせください。';
   }
@@ -643,8 +653,9 @@ function renderDays(){
     const d=state.days[i], over=lim && d.date>lim;
     const free=(d.closed||over)?0:d.slots.filter(s=>s.available).length;
     const has=state.wishes.some(x=>x.date===d.date);
-    const mark=has?'選択中':d.closed?'休':over?'－':(free?'○':'×');
-    cells+=`<div class="cd${wc}${(d.closed||!free)&&!has?' closed':''}${i===state.dayIdx?' sel':''}${has?' has':''}" data-i="${i}"><span>${dd}</span><small>${mark}</small></div>`;
+    const nr=!!(d.near && free && !over && !d.closed);
+    const mark=has?'選択中':d.closed?'休':over?'－':(free?(nr?'◎':'○'):'×');
+    cells+=`<div class="cd${wc}${nr?' near':''}${(d.closed||!free)&&!has?' closed':''}${i===state.dayIdx?' sel':''}${has?' has':''}" data-i="${i}"><span>${dd}</span><small>${mark}</small></div>`;
   }
   $('days').innerHTML = `<div class="mhd"><button type="button" data-m="-1"${mi<=0?' disabled':''}>◀</button><b>${y}年${m}月</b><button type="button" data-m="1"${mi>=months.length-1?' disabled':''}>▶</button></div>
     <div class="wk">${WD.map(w=>`<div>${w}</div>`).join('')}</div><div class="grid">${cells}</div>`;
